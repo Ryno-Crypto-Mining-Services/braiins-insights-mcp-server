@@ -1,0 +1,14 @@
+{
+  "avg_fees_per_block": 0.015,
+  "current_hashrate": 1094.42,
+  "current_hashrate_estimated": 1148.46,
+  "fees_percent": 0.48,
+  "hash_price": 0.038,
+  "hash_rate_30": 1075.4,
+  "hash_value": 4E-7,
+  "monthly_avg_hashrate_change_1_year": {
+    "relative": 0.03,
+    "absolute": 29.47665536
+  },
+  "rev_usd": 40809615.49
+}
