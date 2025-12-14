@@ -18,7 +18,10 @@ interface MockInsightsApiClient {
  * Custom error classes for testing
  */
 class InsightsApiError extends Error {
-  constructor(message: string, public statusCode: number) {
+  constructor(
+    message: string,
+    public statusCode: number
+  ) {
     super(message);
     this.name = 'InsightsApiError';
   }
@@ -37,7 +40,7 @@ describe('HashrateStatsTool', () => {
 
   beforeEach(() => {
     mockClient = {
-      getHashrateStats: jest.fn()
+      getHashrateStats: jest.fn(),
     };
 
     tool = new HashrateStatsTool(mockClient as any);
@@ -72,9 +75,9 @@ describe('HashrateStatsTool', () => {
       hash_value: 4e-7,
       monthly_avg_hashrate_change_1_year: {
         relative: 0.03,
-        absolute: 29.47665536
+        absolute: 29.47665536,
       },
-      rev_usd: 40809781.01
+      rev_usd: 40809781.01,
     };
 
     it('should return formatted markdown on success', async () => {
@@ -134,8 +137,8 @@ describe('HashrateStatsTool', () => {
         ...mockStats,
         monthly_avg_hashrate_change_1_year: {
           relative: -0.05,
-          absolute: -50
-        }
+          absolute: -50,
+        },
       };
 
       mockClient.getHashrateStats.mockResolvedValue(negativeChangeStats);
@@ -238,9 +241,9 @@ describe('HashrateStatsTool', () => {
         hash_value: 0,
         monthly_avg_hashrate_change_1_year: {
           relative: 0,
-          absolute: 0
+          absolute: 0,
         },
-        rev_usd: 0
+        rev_usd: 0,
       };
 
       mockClient.getHashrateStats.mockResolvedValue(zeroStats);
@@ -263,9 +266,9 @@ describe('HashrateStatsTool', () => {
         hash_value: 4e-7,
         monthly_avg_hashrate_change_1_year: {
           relative: 0.03,
-          absolute: 29.47665536
+          absolute: 29.47665536,
         },
-        rev_usd: 999999999.99
+        rev_usd: 999999999.99,
       };
 
       mockClient.getHashrateStats.mockResolvedValue(largeStats);

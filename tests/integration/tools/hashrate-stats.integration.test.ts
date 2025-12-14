@@ -21,10 +21,10 @@ class RealInsightsApiClient {
     const response = await fetch(`${this.baseUrl}/v1.0/hashrate-stats`, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Braiins-Insights-MCP-Server/1.0.0-test'
+        'User-Agent': 'Braiins-Insights-MCP-Server/1.0.0-test',
       },
       // Follow redirects (Cloudflare 302)
-      redirect: 'follow'
+      redirect: 'follow',
     });
 
     if (!response.ok) {
@@ -148,10 +148,10 @@ describe('HashrateStatsTool Integration', () => {
         'Average Fees per Block',
         'Fees as % of Revenue',
         'Relative Change',
-        'Absolute Change'
+        'Absolute Change',
       ];
 
-      expectedFields.forEach(field => {
+      expectedFields.forEach((field) => {
         expect(markdown).toContain(field);
       });
     }, 15000);
@@ -166,15 +166,14 @@ describe('HashrateStatsTool Integration', () => {
           const timeoutId = setTimeout(() => controller.abort(), 1); // 1ms timeout
 
           try {
-            const response = await fetch(
-              'https://insights.braiins.com/api/v1.0/hashrate-stats',
-              { signal: controller.signal }
-            );
+            const response = await fetch('https://insights.braiins.com/api/v1.0/hashrate-stats', {
+              signal: controller.signal,
+            });
             return response.json();
           } finally {
             clearTimeout(timeoutId);
           }
-        }
+        },
       };
 
       const timeoutTool = new HashrateStatsTool(timeoutClient as any);

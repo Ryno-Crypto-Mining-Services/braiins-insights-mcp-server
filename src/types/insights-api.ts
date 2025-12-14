@@ -143,17 +143,19 @@ export function isHashrateStats(obj: unknown): obj is BraiinsInsightsHashrateSta
   const stats = obj as Record<string, unknown>;
 
   return (
-    typeof stats.avg_fees_per_block === 'number' &&
-    typeof stats.current_hashrate === 'number' &&
-    typeof stats.current_hashrate_estimated === 'number' &&
-    typeof stats.fees_percent === 'number' &&
-    typeof stats.hash_price === 'number' &&
-    typeof stats.hash_rate_30 === 'number' &&
-    typeof stats.hash_value === 'number' &&
-    typeof stats.monthly_avg_hashrate_change_1_year === 'object' &&
-    stats.monthly_avg_hashrate_change_1_year !== null &&
-    typeof (stats.monthly_avg_hashrate_change_1_year as Record<string, unknown>).relative === 'number' &&
-    typeof (stats.monthly_avg_hashrate_change_1_year as Record<string, unknown>).absolute === 'number' &&
-    typeof stats.rev_usd === 'number'
+    typeof stats['avg_fees_per_block'] === 'number' &&
+    typeof stats['current_hashrate'] === 'number' &&
+    typeof stats['current_hashrate_estimated'] === 'number' &&
+    typeof stats['fees_percent'] === 'number' &&
+    typeof stats['hash_price'] === 'number' &&
+    typeof stats['hash_rate_30'] === 'number' &&
+    typeof stats['hash_value'] === 'number' &&
+    typeof stats['monthly_avg_hashrate_change_1_year'] === 'object' &&
+    stats['monthly_avg_hashrate_change_1_year'] !== null &&
+    typeof (stats['monthly_avg_hashrate_change_1_year'] as Record<string, unknown>)['relative'] ===
+      'number' &&
+    typeof (stats['monthly_avg_hashrate_change_1_year'] as Record<string, unknown>)['absolute'] ===
+      'number' &&
+    typeof stats['rev_usd'] === 'number'
   );
 }

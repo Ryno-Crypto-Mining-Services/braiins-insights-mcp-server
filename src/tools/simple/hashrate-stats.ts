@@ -31,7 +31,10 @@ interface InsightsApiClient {
  * Custom error classes (to be imported from actual error module)
  */
 class InsightsApiError extends Error {
-  constructor(message: string, public statusCode: number) {
+  constructor(
+    message: string,
+    public statusCode: number
+  ) {
     super(message);
     this.name = 'InsightsApiError';
   }
@@ -64,7 +67,7 @@ export class HashrateStatsTool {
   readonly inputSchema = {
     type: 'object' as const,
     properties: {},
-    required: [] as string[]
+    required: [] as string[],
   };
 
   constructor(private readonly apiClient: InsightsApiClient) {}
@@ -87,10 +90,10 @@ export class HashrateStatsTool {
         content: [
           {
             type: 'text',
-            text: markdown
-          }
+            text: markdown,
+          },
         ],
-        isError: false
+        isError: false,
       };
     } catch (error) {
       return this.handleError(error);
@@ -156,7 +159,7 @@ export class HashrateStatsTool {
   private formatCurrency(value: number): string {
     return value.toLocaleString('en-US', {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     });
   }
 
@@ -177,10 +180,10 @@ export class HashrateStatsTool {
         content: [
           {
             type: 'text',
-            text: `❌ **API Error**: ${error.message}\n\nStatus: ${error.statusCode}\n\nPlease try again later or check the Braiins Insights API status.`
-          }
+            text: `❌ **API Error**: ${error.message}\n\nStatus: ${error.statusCode}\n\nPlease try again later or check the Braiins Insights API status.`,
+          },
         ],
-        isError: true
+        isError: true,
       };
     }
 
@@ -189,10 +192,10 @@ export class HashrateStatsTool {
         content: [
           {
             type: 'text',
-            text: `❌ **Network Error**: Could not reach Braiins Insights API\n\nDetails: ${error.message}\n\nPlease check your internet connection.`
-          }
+            text: `❌ **Network Error**: Could not reach Braiins Insights API\n\nDetails: ${error.message}\n\nPlease check your internet connection.`,
+          },
         ],
-        isError: true
+        isError: true,
       };
     }
 
@@ -200,10 +203,10 @@ export class HashrateStatsTool {
       content: [
         {
           type: 'text',
-          text: `❌ **Unexpected Error**: ${error instanceof Error ? error.message : String(error)}\n\nPlease report this issue if it persists.`
-        }
+          text: `❌ **Unexpected Error**: ${error instanceof Error ? error.message : String(error)}\n\nPlease report this issue if it persists.`,
+        },
       ],
-      isError: true
+      isError: true,
     };
   }
 }
