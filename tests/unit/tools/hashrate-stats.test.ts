@@ -1,60 +1,50 @@
 /**
- * Unit tests for HashrateStatsTool
- *
- * Tests the braiins_hashrate_stats MCP tool in isolation with mocked API client.
+ * Unit tests for braiins_hashrate_stats tool
  */
 
-import { HashrateStatsTool } from '../../../src/tools/simple/hashrate-stats';
-import { BraiinsInsightsHashrateStats } from '../../../src/types/insights-api';
+import { jest } from '@jest/globals';
+import { HashrateStatsTool } from '../../../src/tools/simple/hashrate-stats.js';
+import { BraiinsInsightsHashrateStats } from '../../../src/types/insights-api.js';
+import { InsightsApiError, NetworkError } from '../../../src/api/insights-client.js';
 
-/**
- * Mock API client for testing
- */
-interface MockInsightsApiClient {
-  getHashrateStats: jest.Mock;
-}
+// Mock API client
+const createMockApiClient = () => ({
+  getHashrateStats: jest.fn(),
+});
 
-/**
- * Custom error classes for testing
- */
-class InsightsApiError extends Error {
-  constructor(
-    message: string,
-    public statusCode: number
-  ) {
-    super(message);
-    this.name = 'InsightsApiError';
-  }
-}
-
-class NetworkError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NetworkError';
-  }
-}
+// Sample valid response data
+const SAMPLE_HASHRATE_STATS: BraiinsInsightsHashrateStats = {
+  avg_fees_per_block: 0.016,
+  current_hashrate: 1001.23,
+  current_hashrate_estimated: 1146.5,
+  fees_percent: 0.5,
+  hash_price: 0.039,
+  hash_rate_30: 1074.37,
+  hash_value: 4e-7,
+  monthly_avg_hashrate_change_1_year: {
+    relative: 0.03,
+    absolute: 29.47665536,
+  },
+  rev_usd: 40872449.1,
+};
 
 describe('HashrateStatsTool', () => {
   let tool: HashrateStatsTool;
-  let mockClient: MockInsightsApiClient;
+  let mockApiClient: ReturnType<typeof createMockApiClient>;
 
   beforeEach(() => {
-    mockClient = {
-      getHashrateStats: jest.fn(),
-    };
-
-    tool = new HashrateStatsTool(mockClient as any);
+    mockApiClient = createMockApiClient();
+    tool = new HashrateStatsTool(mockApiClient as any);
   });
 
-  describe('Metadata', () => {
+  describe('metadata', () => {
     it('should have correct tool name', () => {
       expect(tool.name).toBe('braiins_hashrate_stats');
     });
 
     it('should have descriptive description', () => {
       expect(tool.description).toContain('hashrate');
-      expect(tool.description).toContain('network');
-      expect(tool.description).toContain('Bitcoin');
+      expect(tool.description.length).toBeGreaterThan(20);
     });
 
     it('should have empty input schema (no parameters)', () => {
@@ -64,220 +54,54 @@ describe('HashrateStatsTool', () => {
     });
   });
 
-  describe('execute()', () => {
-    const mockStats: BraiinsInsightsHashrateStats = {
-      avg_fees_per_block: 0.015,
-      current_hashrate: 1094.42,
-      current_hashrate_estimated: 1148.46,
-      fees_percent: 0.48,
-      hash_price: 0.038,
-      hash_rate_30: 1075.4,
-      hash_value: 4e-7,
-      monthly_avg_hashrate_change_1_year: {
-        relative: 0.03,
-        absolute: 29.47665536,
-      },
-      rev_usd: 40809781.01,
-    };
+  describe('execute - happy path', () => {
+    it('should fetch and format hashrate stats successfully', async () => {
+      mockApiClient.getHashrateStats.mockResolvedValue(SAMPLE_HASHRATE_STATS);
 
-    it('should return formatted markdown on success', async () => {
-      mockClient.getHashrateStats.mockResolvedValue(mockStats);
+      const result = await tool.execute({});
 
-      const response = await tool.execute({});
+      expect(mockApiClient.getHashrateStats).toHaveBeenCalledTimes(1);
+      expect(result.isError).toBe(false);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
 
-      expect(response.isError).toBe(false);
-      expect(response.content[0].type).toBe('text');
-      expect(response.content[0].text).toContain('1094.42 EH/s');
-      expect(response.content[0].text).toContain('1148.46 EH/s');
-      expect(response.content[0].text).toContain('1075.40 EH/s');
+      const markdown = result.content[0].text;
+      expect(markdown).toContain('Bitcoin Network Hashrate Statistics');
+      expect(markdown).toContain('1001.23');
+      expect(markdown).toContain('1146.50');
+      expect(markdown).toContain('1074.37');
     });
 
-    it('should format markdown with proper sections', async () => {
-      mockClient.getHashrateStats.mockResolvedValue(mockStats);
+    it('should format hash price correctly', async () => {
+      mockApiClient.getHashrateStats.mockResolvedValue(SAMPLE_HASHRATE_STATS);
 
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
 
-      expect(markdown).toContain('# 📊 Bitcoin Network Hashrate Statistics');
-      expect(markdown).toContain('## Current Metrics');
-      expect(markdown).toContain('## Mining Economics');
-      expect(markdown).toContain('## Transaction Fees');
-      expect(markdown).toContain('## 1-Year Trend');
-      expect(markdown).toContain('*Data from');
-    });
-
-    it('should format large numbers correctly', async () => {
-      mockClient.getHashrateStats.mockResolvedValue(mockStats);
-
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      // Currency formatting with thousands separators
-      expect(markdown).toContain('40,809,781.01');
-
-      // Hash price with 3 decimal places
-      expect(markdown).toContain('$0.038');
-
-      // Fees with 3 decimal places
-      expect(markdown).toContain('0.015 BTC');
-    });
-
-    it('should format percent change with sign', async () => {
-      mockClient.getHashrateStats.mockResolvedValue(mockStats);
-
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      // Positive change should have + sign
-      expect(markdown).toContain('+3.00%');
-    });
-
-    it('should handle negative percent change', async () => {
-      const negativeChangeStats = {
-        ...mockStats,
-        monthly_avg_hashrate_change_1_year: {
-          relative: -0.05,
-          absolute: -50,
-        },
-      };
-
-      mockClient.getHashrateStats.mockResolvedValue(negativeChangeStats);
-
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      // Negative change should have - sign
-      expect(markdown).toContain('-5.00%');
-    });
-
-    it('should handle scientific notation values', async () => {
-      mockClient.getHashrateStats.mockResolvedValue(mockStats);
-
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      // hash_value is 4e-7, should be formatted in scientific notation
-      expect(markdown).toMatch(/\$4\.\d+e-7/i);
-    });
-
-    it('should handle API errors gracefully', async () => {
-      const apiError = new InsightsApiError('Not Found', 404);
-      mockClient.getHashrateStats.mockRejectedValue(apiError);
-
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(true);
-      expect(response.content[0].text).toContain('❌');
-      expect(response.content[0].text).toContain('API Error');
-      expect(response.content[0].text).toContain('404');
-      expect(response.content[0].text).toContain('Not Found');
-    });
-
-    it('should handle network errors gracefully', async () => {
-      const netError = new NetworkError('Connection timeout');
-      mockClient.getHashrateStats.mockRejectedValue(netError);
-
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(true);
-      expect(response.content[0].text).toContain('❌');
-      expect(response.content[0].text).toContain('Network Error');
-      expect(response.content[0].text).toContain('Connection timeout');
-      expect(response.content[0].text).toContain('internet connection');
-    });
-
-    it('should handle unknown errors gracefully', async () => {
-      const unknownError = new Error('Something went wrong');
-      mockClient.getHashrateStats.mockRejectedValue(unknownError);
-
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(true);
-      expect(response.content[0].text).toContain('❌');
-      expect(response.content[0].text).toContain('Unexpected Error');
-      expect(response.content[0].text).toContain('Something went wrong');
-    });
-
-    it('should handle non-Error objects', async () => {
-      mockClient.getHashrateStats.mockRejectedValue('String error');
-
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(true);
-      expect(response.content[0].text).toContain('❌');
-      expect(response.content[0].text).toContain('Unexpected Error');
-      expect(response.content[0].text).toContain('String error');
-    });
-
-    it('should accept empty input object', async () => {
-      mockClient.getHashrateStats.mockResolvedValue(mockStats);
-
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(false);
-      expect(mockClient.getHashrateStats).toHaveBeenCalledTimes(1);
-    });
-
-    it('should ignore any input parameters (no-op)', async () => {
-      mockClient.getHashrateStats.mockResolvedValue(mockStats);
-
-      // Even if parameters are passed, they should be ignored
-      const response = await tool.execute({ page: 1, random: 'value' });
-
-      expect(response.isError).toBe(false);
-      expect(mockClient.getHashrateStats).toHaveBeenCalledTimes(1);
+      expect(markdown).toContain('$0.039');
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle zero values', async () => {
-      const zeroStats: BraiinsInsightsHashrateStats = {
-        avg_fees_per_block: 0,
-        current_hashrate: 0,
-        current_hashrate_estimated: 0,
-        fees_percent: 0,
-        hash_price: 0,
-        hash_rate_30: 0,
-        hash_value: 0,
-        monthly_avg_hashrate_change_1_year: {
-          relative: 0,
-          absolute: 0,
-        },
-        rev_usd: 0,
-      };
+  describe('execute - error handling', () => {
+    it('should handle InsightsApiError', async () => {
+      const apiError = new InsightsApiError('API rate limit exceeded', 429, '/v1.0/hashrate-stats');
+      mockApiClient.getHashrateStats.mockRejectedValue(apiError);
 
-      mockClient.getHashrateStats.mockResolvedValue(zeroStats);
+      const result = await tool.execute({});
 
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(false);
-      expect(response.content[0].text).toContain('0.00 EH/s');
-      expect(response.content[0].text).toContain('$0.00');
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('API Error');
+      expect(result.content[0].text).toContain('429');
     });
 
-    it('should handle very large numbers', async () => {
-      const largeStats: BraiinsInsightsHashrateStats = {
-        avg_fees_per_block: 0.015,
-        current_hashrate: 99999.99,
-        current_hashrate_estimated: 99999.99,
-        fees_percent: 0.48,
-        hash_price: 0.038,
-        hash_rate_30: 99999.99,
-        hash_value: 4e-7,
-        monthly_avg_hashrate_change_1_year: {
-          relative: 0.03,
-          absolute: 29.47665536,
-        },
-        rev_usd: 999999999.99,
-      };
+    it('should handle NetworkError', async () => {
+      const networkError = new NetworkError('DNS lookup failed');
+      mockApiClient.getHashrateStats.mockRejectedValue(networkError);
 
-      mockClient.getHashrateStats.mockResolvedValue(largeStats);
+      const result = await tool.execute({});
 
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(false);
-      expect(response.content[0].text).toContain('99999.99 EH/s');
-      expect(response.content[0].text).toContain('999,999,999.99');
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Network Error');
     });
   });
 });

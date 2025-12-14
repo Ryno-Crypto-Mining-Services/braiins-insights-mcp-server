@@ -28,7 +28,7 @@ export interface MCPTool {
  */
 export interface MCPToolResponse {
   content: Array<{ type: 'text'; text: string }>;
-  isError: boolean;
+  isError?: boolean;
 }
 
 /**
@@ -44,28 +44,29 @@ export enum ToolCategory {
 /**
  * Get all registered tools
  *
+ * @param apiClient - Insights API client instance
  * @returns Array of tool instances ready for MCP registration
  *
  * @example
  * ```typescript
- * const tools = getAllTools();
+ * const apiClient = createInsightsClient();
+ * const tools = getAllTools(apiClient);
  * tools.forEach(tool => server.registerTool(tool));
  * ```
  */
-export function getAllTools(): MCPTool[] {
-  // Placeholder: Only hashrate-stats available currently
-  // More tools will be added in Phase 2
-  return [];
+export function getAllTools(apiClient: any): MCPTool[] {
+  return [new HashrateStatsTool(apiClient)];
 }
 
 /**
  * Get tools by category
  *
+ * @param apiClient - Insights API client instance
  * @param category - Tool category to filter by
  * @returns Array of tools in the specified category
  */
-export function getToolsByCategory(_category: ToolCategory): MCPTool[] {
-  const allTools = getAllTools();
+export function getToolsByCategory(apiClient: any, _category: ToolCategory): MCPTool[] {
+  const allTools = getAllTools(apiClient);
 
   // Filter logic will be implemented when tools are registered
   return allTools.filter(() => {

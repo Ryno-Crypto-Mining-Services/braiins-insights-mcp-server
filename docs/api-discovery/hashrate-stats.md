@@ -1,56 +1,39 @@
 # API Discovery Report: /v1.0/hashrate-stats
 
-**Endpoint:** `GET /v1.0/hashrate-stats`
-**Discovery Date:** December 13, 2025
-**API Base URL:** `https://insights.braiins.com/api`
+## Discovery Metadata
 
----
+- **Endpoint Path**: `/v1.0/hashrate-stats`
+- **Discovery Date**: 2025-12-13
+- **API Base URL**: `https://insights.braiins.com/api` (redirects to `https://learn.braiins.com/api`)
+- **HTTP Method**: `GET` (POST returns 405 Method Not Allowed)
+- **Authentication**: None required (public endpoint)
 
 ## Executive Summary
 
-The `/v1.0/hashrate-stats` endpoint provides aggregate Bitcoin network hashrate statistics and related metrics. This is a **simple stats endpoint** with no query parameters.
-
-**Category:** Simple Stats Tool
-**Authentication:** None required (public endpoint)
-**Rate Limiting:** Unknown (implement conservative client-side limits)
-
----
-
-## Endpoint Details
-
-### HTTP Method
-`GET`
-
-### Full URL
-```
-https://insights.braiins.com/api/v1.0/hashrate-stats
-```
-
-### Request Requirements
-- **Headers:** None required
-- **Authentication:** None
-- **Query Parameters:** None supported
-
----
+The `/v1.0/hashrate-stats` endpoint returns a **snapshot of current Bitcoin network hashrate statistics** and mining economics metrics. This is a **parameter-free endpoint** that always returns the latest available data. All tested parameters (pagination, date filtering, sorting) are **ignored** - the response is identical regardless of query string.
 
 ## Response Structure
 
-### Successful Response (200 OK)
+### Baseline Response (No Parameters)
+
+```bash
+curl -L https://insights.braiins.com/api/v1.0/hashrate-stats
+```
 
 ```json
 {
-  "avg_fees_per_block": 0.015,
-  "current_hashrate": 1094.42,
-  "current_hashrate_estimated": 1148.46,
-  "fees_percent": 0.48,
-  "hash_price": 0.038,
-  "hash_rate_30": 1075.4,
-  "hash_value": 4E-7,
+  "avg_fees_per_block": 0.016,
+  "current_hashrate": 1001.23,
+  "current_hashrate_estimated": 1146.5,
+  "fees_percent": 0.5,
+  "hash_price": 0.039,
+  "hash_rate_30": 1074.37,
+  "hash_value": 4e-7,
   "monthly_avg_hashrate_change_1_year": {
     "relative": 0.03,
     "absolute": 29.47665536
   },
-  "rev_usd": 40809781.01
+  "rev_usd": 40872449.1
 }
 ```
 
@@ -60,362 +43,332 @@ https://insights.braiins.com/api/v1.0/hashrate-stats
 |-------|------|------|-------------|
 | `avg_fees_per_block` | number | BTC | Average transaction fees per block |
 | `current_hashrate` | number | EH/s | Current network hashrate in exahashes per second |
-| `current_hashrate_estimated` | number | EH/s | Estimated current hashrate (may differ from reported) |
-| `fees_percent` | number | % | Transaction fees as percentage of total revenue |
+| `current_hashrate_estimated` | number | EH/s | Estimated current hashrate (alternative calculation) |
+| `fees_percent` | number | % | Transaction fees as percentage of total block reward |
 | `hash_price` | number | USD/TH/day | Price per terahash per day |
 | `hash_rate_30` | number | EH/s | 30-day average hashrate |
-| `hash_value` | number | USD/TH/day | Value per terahash per day (likely same as hash_price) |
-| `monthly_avg_hashrate_change_1_year` | object | - | Hashrate change metrics over 1 year |
+| `hash_value` | number | BTC/TH/day | Daily revenue per terahash in BTC |
+| `monthly_avg_hashrate_change_1_year` | object | - | Year-over-year hashrate change |
 | `monthly_avg_hashrate_change_1_year.relative` | number | decimal | Relative change (0.03 = 3% increase) |
-| `monthly_avg_hashrate_change_1_year.absolute` | number | EH/s | Absolute change in exahashes |
-| `rev_usd` | number | USD | Total daily network revenue in USD |
+| `monthly_avg_hashrate_change_1_year.absolute` | number | EH/s | Absolute change in EH/s |
+| `rev_usd` | number | USD | Total network daily revenue in USD |
 
----
+### Data Freshness
+
+- **Update Frequency**: Real-time/near-real-time (varies by metric)
+- **Caching**: Cloudflare CDN with dynamic caching (no explicit Cache-Control headers)
+- **Timestamp**: No explicit timestamp field in response (use HTTP `Date` header)
 
 ## Parameter Discovery Results
 
-### Tested Parameters
+### Pagination Parameters
 
-| Parameter | Tested Values | Supported? | Notes |
-|-----------|---------------|------------|-------|
-| `page` | 1 | ❌ No | Response identical to baseline |
-| `start_date` | 2025-12-01 | ❌ No | Response identical to baseline |
-| `format` | json | ❌ No | Response identical to baseline |
+**Tested**: `page`, `page_size`, `limit`, `offset`
 
-**Conclusion:** This endpoint does not accept any query parameters. It returns current aggregate statistics only.
+**Result**: ❌ **NOT SUPPORTED** - All pagination parameters are ignored
 
----
+```bash
+# All return identical response
+curl -L "https://insights.braiins.com/api/v1.0/hashrate-stats"
+curl -L "https://insights.braiins.com/api/v1.0/hashrate-stats?page=1"
+curl -L "https://insights.braiins.com/api/v1.0/hashrate-stats?page_size=10"
+curl -L "https://insights.braiins.com/api/v1.0/hashrate-stats?limit=20&offset=5"
+```
 
-## Response Characteristics
+### Date Filtering Parameters
 
-### Data Freshness
-- **Update Frequency:** Estimated every 5-10 minutes based on blockchain data
-- **Timestamp Field:** ❌ Not included in response (recommend adding client-side timestamp)
-- **Recommended Cache TTL:** 5 minutes (300,000ms)
+**Tested**: `start_date`, `end_date`, `days`, `hours`
 
-### Response Size
-- **Typical Size:** ~250 bytes (very lightweight)
-- **Variability:** Low (fixed structure)
+**Result**: ❌ **NOT SUPPORTED** - Date parameters are ignored
 
-### Response Time
-- **Average:** ~500ms (with redirect)
-- **Note:** Cloudflare 302 redirect adds ~100ms latency
+```bash
+# All return current snapshot
+curl -L "https://insights.braiins.com/api/v1.0/hashrate-stats?start_date=2025-12-01"
+curl -L "https://insights.braiins.com/api/v1.0/hashrate-stats?days=7"
+```
 
----
+**Recommendation**: For historical hashrate data, use `/v1.0/hashrate-and-difficulty-history` endpoint instead.
 
-## Edge Cases and Error Handling
+### Sorting Parameters
+
+**Tested**: `sort`, `order`, `order_by`, `sort_by`
+
+**Result**: ❌ **NOT SUPPORTED** - Sorting parameters are ignored (N/A for single-object response)
+
+### Domain-Specific Filtering
+
+**Tested**: `pool`, `country`, `min_hashrate`, `max_hashrate`
+
+**Result**: ❌ **NOT SUPPORTED** - Endpoint returns network-wide aggregates only
+
+## Edge Cases and Error Scenarios
+
+### Invalid Parameters
+
+**Behavior**: API **ignores** invalid parameters without error
+
+```bash
+curl -L "https://insights.braiins.com/api/v1.0/hashrate-stats?invalid_param=test"
+# Returns: Normal 200 OK response (parameter ignored)
+```
+
+### Unsupported HTTP Methods
+
+**HEAD Request**:
+```bash
+curl -I https://learn.braiins.com/api/v1.0/hashrate-stats
+# Returns: HTTP 405 Method Not Allowed
+```
+
+**POST Request**:
+```bash
+curl -X POST https://insights.braiins.com/api/v1.0/hashrate-stats
+# Returns: "HTTP method not allowed"
+```
+
+**Supported Methods**: `GET` only
+
+### Rate Limiting
+
+**Testing**: Not observed during discovery testing (20+ requests in 2 minutes)
+
+**Cloudflare Protection**: Endpoint is behind Cloudflare CDN
+- `cf-cache-status: DYNAMIC` (not cached at edge)
+- `cf-ray` header present for tracing
+
+**Recommendation**: Implement conservative client-side rate limiting (60 requests/minute)
 
 ### Network Errors
-- **Cloudflare Protection:** Returns 302 redirect, must use `curl -L` or equivalent
-- **DNS Failure:** Standard network error handling required
-- **Timeout:** Recommend 10-second timeout
 
-### Malformed Responses
-- **Missing Fields:** Fields appear consistently present, but should have fallbacks
-- **Null Values:** Not observed in testing, but handle gracefully
-- **Scientific Notation:** `hash_value` uses scientific notation (4E-7)
+**Redirect Behavior**:
+```
+https://insights.braiins.com/api/v1.0/hashrate-stats
+  → 302 redirect to
+https://learn.braiins.com/api/v1.0/hashrate-stats
+```
 
----
+**Client Recommendation**: Use `-L` flag (follow redirects) or update base URL to `https://learn.braiins.com/api`
 
-## Type Definition Recommendations
+## Response Headers Analysis
+
+```
+HTTP/2 302
+location: https://learn.braiins.com/api/v1.0/hashrate-stats
+cache-control: private, max-age=0, no-store, no-cache, must-revalidate
+server: cloudflare
+cf-cache-status: DYNAMIC
+```
+
+**Key Observations**:
+- Redirect from `insights.braiins.com` to `learn.braiins.com`
+- No server-side caching (`no-store`, `no-cache`)
+- Cloudflare CDN with dynamic content
+- No explicit rate limit headers
+
+## Type System Recommendations
 
 ### TypeScript Interface
 
 ```typescript
 /**
- * Bitcoin network hashrate statistics from Braiins Insights Dashboard.
+ * Response from GET /v1.0/hashrate-stats
  *
- * @see https://insights.braiins.com/api/v1.0/hashrate-stats
+ * Returns current Bitcoin network hashrate statistics and mining economics.
+ * This is a snapshot endpoint with no parameters - always returns latest data.
  */
-export interface BraiinsInsightsHashrateStats {
-  /**
-   * Average transaction fees per block in BTC
-   * @example 0.015
-   */
+interface BraiinsInsightsHashrateStats {
+  /** Average transaction fees per block (BTC) */
   avg_fees_per_block: number;
 
-  /**
-   * Current network hashrate in exahashes per second (EH/s)
-   * @example 1094.42
-   */
+  /** Current network hashrate (EH/s) */
   current_hashrate: number;
 
-  /**
-   * Estimated current hashrate in EH/s (may differ from reported)
-   * @example 1148.46
-   */
+  /** Estimated current hashrate using alternative calculation (EH/s) */
   current_hashrate_estimated: number;
 
-  /**
-   * Transaction fees as percentage of total mining revenue
-   * @example 0.48 (meaning 0.48%)
-   */
+  /** Transaction fees as percentage of total block reward */
   fees_percent: number;
 
-  /**
-   * Hash price in USD per terahash per day
-   * @example 0.038
-   */
+  /** Hash price: USD per terahash per day */
   hash_price: number;
 
-  /**
-   * 30-day average network hashrate in EH/s
-   * @example 1075.4
-   */
+  /** 30-day average network hashrate (EH/s) */
   hash_rate_30: number;
 
-  /**
-   * Hash value in USD per terahash per day
-   * May use scientific notation (e.g., 4E-7)
-   * @example 0.0000004
-   */
+  /** Hash value: Daily revenue per terahash (BTC/TH/day) */
   hash_value: number;
 
-  /**
-   * Monthly average hashrate change over 1 year
-   */
+  /** Year-over-year hashrate change statistics */
   monthly_avg_hashrate_change_1_year: {
-    /**
-     * Relative change as decimal (0.03 = 3% increase)
-     */
+    /** Relative change (0.03 = 3% increase) */
     relative: number;
 
-    /**
-     * Absolute change in exahashes per second
-     */
+    /** Absolute change in EH/s */
     absolute: number;
   };
 
-  /**
-   * Total daily network revenue in USD
-   * @example 40809781.01
-   */
+  /** Total network daily revenue (USD) */
   rev_usd: number;
+}
+
+/**
+ * Input schema for braiins_hashrate_stats tool
+ *
+ * Note: This endpoint accepts no parameters. All query parameters are ignored.
+ */
+interface BraiinsHashrateStatsInput {
+  // No parameters
 }
 ```
 
-### Validation Schema (Zod)
+### Zod Schema (Runtime Validation)
 
 ```typescript
 import { z } from 'zod';
 
-export const HashrateStatsSchema = z.object({
+const BraiinsInsightsHashrateStatsSchema = z.object({
   avg_fees_per_block: z.number().nonnegative(),
   current_hashrate: z.number().positive(),
   current_hashrate_estimated: z.number().positive(),
-  fees_percent: z.number().min(0).max(100),
+  fees_percent: z.number().nonnegative().max(100),
   hash_price: z.number().nonnegative(),
   hash_rate_30: z.number().positive(),
-  hash_value: z.number(),
+  hash_value: z.number().nonnegative(),
   monthly_avg_hashrate_change_1_year: z.object({
     relative: z.number(),
-    absolute: z.number(),
+    absolute: z.number()
   }),
-  rev_usd: z.number().positive(),
+  rev_usd: z.number().nonnegative()
 });
 
-export type HashrateStatsValidated = z.infer<typeof HashrateStatsSchema>;
+const BraiinsHashrateStatsInputSchema = z.object({
+  // No parameters - empty schema
+}).strict();
 ```
 
----
-
-## MCP Tool Implementation Recommendations
-
-### Tool Category
-**Simple Stats Tool** (no user input parameters)
+## MCP Tool Design Recommendations
 
 ### Tool Schema
 
-```typescript
+```json
 {
-  name: 'braiins_hashrate_stats',
-  description: 'Get current Bitcoin network hashrate statistics including current hashrate, 30-day average, hash price, and network revenue',
-  inputSchema: {
-    type: 'object',
-    properties: {},
-    required: []
+  "name": "braiins_hashrate_stats",
+  "description": "Get current Bitcoin network hashrate statistics including current hashrate, 30-day average, hash price, hash value, and mining revenue metrics. Returns a snapshot of latest data with no historical lookback.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
   }
 }
 ```
 
-### Markdown Output Format
+**Category**: Simple snapshot tool (no parameters)
+
+### Response Formatting Strategy
+
+**Markdown Output Structure**:
 
 ```markdown
 # 📊 Bitcoin Network Hashrate Statistics
 
-## Current Metrics
-- **Current Hashrate:** 1,094.42 EH/s
-- **Estimated Hashrate:** 1,148.46 EH/s
-- **30-Day Average:** 1,075.40 EH/s
+## Current Network Metrics
+
+- **Current Hashrate**: 1,001.23 EH/s
+- **Estimated Hashrate**: 1,146.50 EH/s
+- **30-Day Average**: 1,074.37 EH/s
 
 ## Mining Economics
-- **Hash Price:** $0.038 per TH/day
-- **Hash Value:** $0.0000004 per TH/day
-- **Daily Network Revenue:** $40,809,781.01
+
+- **Hash Price**: $0.039 USD/TH/day
+- **Hash Value**: 0.0000004 BTC/TH/day
+- **Network Revenue**: $40,872,449.10 USD/day
 
 ## Transaction Fees
-- **Average Fees per Block:** 0.015 BTC
-- **Fees as % of Revenue:** 0.48%
 
-## 1-Year Trend
-- **Relative Change:** +3.00%
-- **Absolute Change:** +29.48 EH/s
+- **Avg Fees/Block**: 0.016 BTC
+- **Fees % of Reward**: 0.5%
+
+## Year-over-Year Change
+
+- **Absolute**: +29.48 EH/s
+- **Relative**: +3.0%
 
 ---
-*Data from Braiins Insights Dashboard*
-*Updated: [timestamp]*
+*Data from Braiins Insights API*
 ```
 
-### Error Handling
+### Caching Recommendations
 
-```typescript
-async execute(_input: unknown): Promise<MCPToolResponse> {
-  try {
-    const data = await this.apiClient.getHashrateStats();
+**Client-Side Caching**:
+- **TTL**: 5 minutes (data updates frequently but not real-time)
+- **Cache Key**: `hashrate-stats` (no parameters to vary)
+- **Invalidation**: Time-based only
 
-    // Validate response structure
-    const validated = HashrateStatsSchema.parse(data);
+**Rationale**: Reduce API load for repeated queries within same session
 
-    return {
-      content: [{
-        type: 'text',
-        text: this.formatAsMarkdown(validated)
-      }],
-      isError: false
-    };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        content: [{
-          type: 'text',
-          text: `❌ **API Response Validation Error**\n\nThe Insights API returned an unexpected format:\n${error.errors.map(e => `- ${e.path.join('.')}: ${e.message}`).join('\n')}`
-        }],
-        isError: true
-      };
-    }
+## Test Fixture
 
-    return this.handleNetworkError(error);
-  }
-}
-```
-
----
-
-## Testing Recommendations
-
-### Unit Tests
-1. **Metadata Validation**
-   - Tool name is `braiins_hashrate_stats`
-   - Description is clear and concise
-   - Input schema is empty (no parameters)
-
-2. **Execute Method**
-   - Returns formatted markdown on success
-   - Handles API errors gracefully
-   - Handles malformed responses
-   - Formats large numbers correctly (1094.42, not 1094.42000000)
-   - Handles scientific notation (4E-7)
-
-3. **Markdown Formatting**
-   - Headers are properly formatted
-   - Numbers have appropriate precision
-   - Revenue uses thousands separators
-   - Percentages are human-readable
-
-### Integration Tests
-1. **Live API Call**
-   - Fetch actual data from Insights API
-   - Validate response structure matches type definition
-   - Verify all fields are present and non-null
-   - Check response time is <2 seconds
-
-2. **Caching**
-   - First call hits API
-   - Second call within TTL returns cached data
-   - Call after TTL expiry hits API again
-
----
-
-## Fixture Data
-
-**Location:** `tests/integration/fixtures/hashrate-stats.json`
+**Location**: `tests/integration/fixtures/hashrate-stats.json`
 
 ```json
 {
-  "avg_fees_per_block": 0.015,
-  "current_hashrate": 1094.42,
-  "current_hashrate_estimated": 1148.46,
-  "fees_percent": 0.48,
-  "hash_price": 0.038,
-  "hash_rate_30": 1075.4,
-  "hash_value": 4E-7,
-  "monthly_avg_hashrate_change_1_year": {
-    "relative": 0.03,
-    "absolute": 29.47665536
+  "endpoint": "/v1.0/hashrate-stats",
+  "method": "GET",
+  "parameters": null,
+  "response": {
+    "status": 200,
+    "body": {
+      "avg_fees_per_block": 0.016,
+      "current_hashrate": 1001.23,
+      "current_hashrate_estimated": 1146.5,
+      "fees_percent": 0.5,
+      "hash_price": 0.039,
+      "hash_rate_30": 1074.37,
+      "hash_value": 4e-7,
+      "monthly_avg_hashrate_change_1_year": {
+        "relative": 0.03,
+        "absolute": 29.47665536
+      },
+      "rev_usd": 40872449.1
+    }
   },
-  "rev_usd": 40809781.01
+  "captured_at": "2025-12-13T03:25:00Z"
 }
 ```
 
----
+## Implementation Checklist
 
-## API Documentation Updates
+- [ ] Update API.md with "No parameters" note
+- [ ] Create `src/types/insights-api.ts` with `BraiinsInsightsHashrateStats` interface
+- [ ] Implement `InsightsApiClient.getHashrateStats()` method
+- [ ] Implement `braiins_hashrate_stats` MCP tool
+- [ ] Add response transformation to markdown
+- [ ] Create test fixture at `tests/integration/fixtures/hashrate-stats.json`
+- [ ] Write unit tests for tool
+- [ ] Write integration test (calls real API)
+- [ ] Add 5-minute client-side caching
+- [ ] Document in README.md with example query
 
-### API.md Changes Required
+## Related Endpoints
 
-**Current entry:**
-```markdown
-### 8. Hashrate Stats
-- **Tool name:** `braiins_hashrate_stats`
-- **HTTP method:** `GET`
-- **Path:** `/v1.0/hashrate-stats`
-- **Params:** none.
-- **Description:** Aggregate hashrate statistics.
-```
+For related data:
+- **Historical hashrate**: `/v1.0/hashrate-and-difficulty-history`
+- **Difficulty stats**: `/v1.0/difficulty-stats`
+- **Network blocks**: `/v1.0/blocks`
+- **Pool distribution**: `/v1.0/pool-stats`
 
-**Recommended update:**
-```markdown
-### 8. Hashrate Stats
-- **Tool name:** `braiins_hashrate_stats`
-- **HTTP method:** `GET`
-- **Path:** `/v1.0/hashrate-stats`
-- **Authentication:** None (public endpoint)
-- **Query Parameters:** None supported
-- **Response Type:** `BraiinsInsightsHashrateStats`
-- **Cache TTL:** 5 minutes (300,000ms)
-- **Description:** Current Bitcoin network hashrate statistics including:
-  - Current and estimated hashrate (EH/s)
-  - 30-day average hashrate
-  - Hash price and value (USD/TH/day)
-  - Transaction fee metrics
-  - 1-year hashrate change trends
-  - Daily network revenue (USD)
-- **Example Response Fields:**
-  - `current_hashrate`: 1094.42 (EH/s)
-  - `hash_price`: 0.038 (USD/TH/day)
-  - `rev_usd`: 40809781.01 (USD)
-- **Note:** Returns 302 redirect via Cloudflare; HTTP clients must follow redirects
-```
+## Discovery Limitations
+
+**Untested Scenarios**:
+- High-frequency request patterns (100+ req/min) to confirm rate limits
+- Behavior during network difficulty adjustment events
+- Behavior during Bitcoin halving events
+- Response consistency across multiple Cloudflare edge locations
+
+**Recommendation**: Monitor production usage for edge cases not covered in discovery testing.
 
 ---
 
-## Next Steps
-
-1. ✅ **Discovery Complete** - All parameters tested, no query params supported
-2. ✅ **Type Definitions** - TypeScript interface and Zod schema provided above
-3. ✅ **Test Fixture** - Saved to `tests/integration/fixtures/hashrate-stats.json`
-4. ⏳ **Implement Tool** - Use `/implement-tool braiins_hashrate_stats --category simple`
-5. ⏳ **Update API.md** - Add enhanced documentation
-6. ⏳ **Write Tests** - Unit + integration tests
-7. ⏳ **Add to Server** - Register tool in MCP server
-
----
-
-**Discovery Status:** ✅ Complete
-**Tool Complexity:** Low (simple stats, no parameters)
-**Implementation Priority:** High (foundational metric)
-**Estimated Implementation Time:** 30 minutes
-
-**Discovered By:** Claude (API Explorer Agent)
-**Discovery Method:** Systematic parameter testing via braiins-api-discovery skill
-**API Response Captured:** December 13, 2025 18:30 UTC
+**Discovery Completed**: 2025-12-13
+**Discoverer**: Claude (Braiins Insights MCP Server)
+**Next Steps**: Implement tool following recommendations above

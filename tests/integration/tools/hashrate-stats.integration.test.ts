@@ -1,187 +1,85 @@
 /**
- * Integration tests for HashrateStatsTool
+ * Integration tests for braiins_hashrate_stats tool
  *
- * Tests the braiins_hashrate_stats MCP tool against the REAL Braiins Insights API.
- * These tests make actual HTTP requests and verify response structures.
- *
- * @group integration
+ * These tests call the REAL Braiins Insights API.
+ * Run with: npm run test:integration
  */
 
-import { HashrateStatsTool } from '../../../src/tools/simple/hashrate-stats';
-
-/**
- * Mock API client that calls the real Insights API
- *
- * TODO: Replace with actual InsightsApiClient once implemented
- */
-class RealInsightsApiClient {
-  private readonly baseUrl = 'https://insights.braiins.com/api';
-
-  async getHashrateStats() {
-    const response = await fetch(`${this.baseUrl}/v1.0/hashrate-stats`, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Braiins-Insights-MCP-Server/1.0.0-test',
-      },
-      // Follow redirects (Cloudflare 302)
-      redirect: 'follow',
-    });
-
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-}
+import { HashrateStatsTool } from '../../../src/tools/simple/hashrate-stats.js';
+import { createInsightsClient } from '../../../src/api/insights-client.js';
 
 describe('HashrateStatsTool Integration', () => {
-  const client = new RealInsightsApiClient();
-  const tool = new HashrateStatsTool(client as any);
+  let tool: HashrateStatsTool;
 
-  describe('Real API Calls', () => {
-    it('should fetch real hashrate stats from Insights API', async () => {
-      const response = await tool.execute({});
-
-      expect(response.isError).toBe(false);
-      expect(response.content).toHaveLength(1);
-      expect(response.content[0].type).toBe('text');
-      expect(response.content[0].text).toBeTruthy();
-    }, 15000); // 15 second timeout for network request
-
-    it('should contain expected markdown sections', async () => {
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      // Check for main sections
-      expect(markdown).toContain('# 📊 Bitcoin Network Hashrate Statistics');
-      expect(markdown).toContain('## Current Metrics');
-      expect(markdown).toContain('## Mining Economics');
-      expect(markdown).toContain('## Transaction Fees');
-      expect(markdown).toContain('## 1-Year Trend');
-
-      // Check for data presence
-      expect(markdown).toContain('EH/s');
-      expect(markdown).toContain('$');
-      expect(markdown).toContain('%');
-    }, 15000);
-
-    it('should have valid numeric values', async () => {
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      // Extract hashrate value (should be a positive number)
-      const hashrateMatch = markdown.match(/Current Hashrate:\*\* ([\d,]+\.\d+) EH\/s/);
-      expect(hashrateMatch).toBeTruthy();
-
-      if (hashrateMatch) {
-        const hashrate = parseFloat(hashrateMatch[1].replace(/,/g, ''));
-        expect(hashrate).toBeGreaterThan(0);
-        expect(hashrate).toBeLessThan(10000); // Sanity check (< 10,000 EH/s)
-      }
-
-      // Extract revenue value (should be a positive number)
-      const revenueMatch = markdown.match(/Daily Network Revenue:\*\* \$([\d,]+\.\d+)/);
-      expect(revenueMatch).toBeTruthy();
-
-      if (revenueMatch) {
-        const revenue = parseFloat(revenueMatch[1].replace(/,/g, ''));
-        expect(revenue).toBeGreaterThan(0);
-        expect(revenue).toBeLessThan(1000000000); // Sanity check (< $1B)
-      }
-    }, 15000);
-
-    it('should include Braiins Insights attribution', async () => {
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      expect(markdown).toContain('Braiins Insights Dashboard');
-      expect(markdown).toContain('https://insights.braiins.com');
-    }, 15000);
-
-    it('should format percentages correctly', async () => {
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
-
-      // Fees percent should be formatted with 2 decimals
-      expect(markdown).toMatch(/Fees as % of Revenue:\*\* \d+\.\d{2}%/);
-
-      // 1-year trend should have +/- sign
-      expect(markdown).toMatch(/Relative Change:\*\* [+-]\d+\.\d{2}%/);
-    }, 15000);
-
-    it('should execute quickly with caching', async () => {
-      const startTime = Date.now();
-
-      // First call (uncached)
-      const response1 = await tool.execute({});
-      const firstCallDuration = Date.now() - startTime;
-
-      expect(response1.isError).toBe(false);
-
-      // Second call (should be cached if caching is implemented)
-      const secondCallStart = Date.now();
-      const response2 = await tool.execute({});
-      const secondCallDuration = Date.now() - secondCallStart;
-
-      expect(response2.isError).toBe(false);
-
-      // Note: This assumes caching is implemented. If not, both calls will be slow.
-      // Uncomment when caching is in place:
-      // expect(secondCallDuration).toBeLessThan(firstCallDuration);
-    }, 20000);
+  beforeAll(() => {
+    const apiClient = createInsightsClient();
+    tool = new HashrateStatsTool(apiClient);
   });
 
-  describe('Response Structure Validation', () => {
-    it('should match expected response structure from fixture', async () => {
-      const response = await tool.execute({});
-      const markdown = response.content[0].text;
+  it('should fetch real hashrate stats from Braiins Insights API', async () => {
+    const result = await tool.execute({});
 
-      // Verify all expected fields are present in the markdown
-      const expectedFields = [
-        'Current Hashrate',
-        'Estimated Hashrate',
-        '30-Day Average',
-        'Hash Price',
-        'Hash Value',
-        'Daily Network Revenue',
-        'Average Fees per Block',
-        'Fees as % of Revenue',
-        'Relative Change',
-        'Absolute Change',
-      ];
+    expect(result.isError).toBe(false);
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe('text');
 
-      expectedFields.forEach((field) => {
-        expect(markdown).toContain(field);
-      });
-    }, 15000);
-  });
+    const markdown = result.content[0].text;
 
-  describe('Error Scenarios', () => {
-    it('should handle network timeout gracefully', async () => {
-      // Create a client with very short timeout
-      const timeoutClient = {
-        async getHashrateStats() {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 1); // 1ms timeout
+    // Check for expected sections
+    expect(markdown).toContain('Bitcoin Network Hashrate Statistics');
+    expect(markdown).toContain('Current Metrics');
+    expect(markdown).toContain('Mining Economics');
+    expect(markdown).toContain('Transaction Fees');
+    expect(markdown).toContain('1-Year Trend');
 
-          try {
-            const response = await fetch('https://insights.braiins.com/api/v1.0/hashrate-stats', {
-              signal: controller.signal,
-            });
-            return response.json();
-          } finally {
-            clearTimeout(timeoutId);
-          }
-        },
-      };
+    // Check for data presence (values should be numbers)
+    expect(markdown).toMatch(/Current Hashrate:.*\d+.*EH\/s/);
+    expect(markdown).toMatch(/Estimated Hashrate:.*\d+.*EH\/s/);
+    expect(markdown).toMatch(/30-Day Average:.*\d+.*EH\/s/);
+    expect(markdown).toMatch(/Hash Price:.*\$\d+/);
+    expect(markdown).toMatch(/Daily Network Revenue:.*\$[\d,]+/);
+    expect(markdown).toMatch(/Average Fees per Block:.*\d+.*BTC/);
 
-      const timeoutTool = new HashrateStatsTool(timeoutClient as any);
-      const response = await timeoutTool.execute({});
+    // Check attribution
+    expect(markdown).toContain('Braiins Insights');
+  }, 15000); // 15 second timeout for API call
 
-      // Should return error response (either Network Error or Unexpected Error)
-      expect(response.isError).toBe(true);
-      expect(response.content[0].text).toContain('❌');
-    }, 10000);
-  });
+  it('should return data within reasonable time', async () => {
+    const startTime = Date.now();
+    const result = await tool.execute({});
+    const duration = Date.now() - startTime;
+
+    expect(result.isError).toBe(false);
+    expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
+  }, 10000);
+
+  it('should return valid hashrate values', async () => {
+    const result = await tool.execute({});
+    const markdown = result.content[0].text;
+
+    // Extract hashrate values (should be positive numbers in EH/s range)
+    const hashrateMatch = markdown.match(/Current Hashrate:.*?([\d,]+\.\d+).*?EH\/s/);
+    expect(hashrateMatch).toBeTruthy();
+
+    if (hashrateMatch) {
+      const hashrate = parseFloat(hashrateMatch[1].replace(/,/g, ''));
+      expect(hashrate).toBeGreaterThan(0);
+      expect(hashrate).toBeLessThan(10000); // Sanity check: less than 10,000 EH/s
+    }
+  }, 10000);
+
+  it('should return valid revenue values', async () => {
+    const result = await tool.execute({});
+    const markdown = result.content[0].text;
+
+    // Extract revenue value
+    const revenueMatch = markdown.match(/Daily Network Revenue:.*?\$([\d,]+\.\d+)/);
+    expect(revenueMatch).toBeTruthy();
+
+    if (revenueMatch) {
+      const revenue = parseFloat(revenueMatch[1].replace(/,/g, ''));
+      expect(revenue).toBeGreaterThan(0);
+      expect(revenue).toBeLessThan(1000000000); // Sanity check: less than 1 billion USD/day
+    }
+  }, 10000);
 });

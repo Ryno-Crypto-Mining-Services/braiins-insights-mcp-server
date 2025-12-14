@@ -11,41 +11,12 @@
  */
 
 import { BraiinsInsightsHashrateStats } from '../../types/insights-api.js';
-
-/**
- * MCP tool response format
- */
-interface MCPToolResponse {
-  content: Array<{ type: 'text'; text: string }>;
-  isError: boolean;
-}
-
-/**
- * Mock API client interface (to be replaced with actual implementation)
- */
-interface InsightsApiClient {
-  getHashrateStats(): Promise<BraiinsInsightsHashrateStats>;
-}
-
-/**
- * Custom error classes (to be imported from actual error module)
- */
-class InsightsApiError extends Error {
-  constructor(
-    message: string,
-    public statusCode: number
-  ) {
-    super(message);
-    this.name = 'InsightsApiError';
-  }
-}
-
-class NetworkError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NetworkError';
-  }
-}
+import {
+  InsightsApiClient,
+  InsightsApiError,
+  NetworkError,
+} from '../../api/insights-client.js';
+import type { MCPToolResponse } from '../index.js';
 
 /**
  * Hashrate Statistics Tool

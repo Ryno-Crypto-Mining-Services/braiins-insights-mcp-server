@@ -14,6 +14,8 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { createInsightsClient } from './api/insights-client.js';
+import { getAllTools } from './tools/index.js';
 
 /**
  * Server configuration
@@ -27,6 +29,12 @@ const SERVER_INFO = {
  * Initialize MCP server
  */
 async function main(): Promise<void> {
+  // Initialize API client
+  const apiClient = createInsightsClient();
+
+  // Get all registered tools
+  const tools = getAllTools(apiClient);
+
   const server = new Server(SERVER_INFO, {
     capabilities: {
       tools: {},
@@ -37,14 +45,14 @@ async function main(): Promise<void> {
    * Handle tool listing
    *
    * Returns available MCP tools to the client.
-   * Initially empty - tools will be registered in subsequent implementation phases.
    */
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-      tools: [
-        // Tools will be registered here in Phase 2
-        // Example: braiins_hashrate_stats, braiins_difficulty_stats, etc.
-      ],
+      tools: tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+      })),
     };
   });
 
@@ -52,15 +60,24 @@ async function main(): Promise<void> {
    * Handle tool execution
    *
    * Routes tool calls to appropriate handlers.
-   * Currently returns error - will be implemented in Phase 2.
    */
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const { name } = request.params;
+    const { name, arguments: args } = request.params;
 
-    // Tool routing will be implemented in Phase 2
-    throw new Error(
-      `Tool "${name}" not implemented yet. This is a placeholder server for TypeScript compilation verification.`
-    );
+    // Find the tool
+    const tool = tools.find((t) => t.name === name);
+
+    if (!tool) {
+      throw new Error(`Unknown tool: ${name}`);
+    }
+
+    // Execute the tool
+    const result = await tool.execute(args ?? {});
+
+    // Return only the content array (MCP SDK format)
+    return {
+      content: result.content,
+    };
   });
 
   /**
