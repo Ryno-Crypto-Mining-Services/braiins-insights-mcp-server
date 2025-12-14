@@ -6,6 +6,8 @@
  */
 
 import { HashrateStatsTool } from './simple/hashrate-stats.js';
+import { PriceStatsTool } from './simple/price-stats.js';
+import { BlocksTool } from './parameterized/blocks.js';
 
 /**
  * Tool registry interface
@@ -55,7 +57,14 @@ export enum ToolCategory {
  * ```
  */
 export function getAllTools(apiClient: any): MCPTool[] {
-  return [new HashrateStatsTool(apiClient)];
+  return [
+    // Simple tools (no parameters)
+    new HashrateStatsTool(apiClient),
+    new PriceStatsTool(apiClient),
+
+    // Parameterized tools (require input)
+    new BlocksTool(apiClient),
+  ];
 }
 
 /**
@@ -76,4 +85,4 @@ export function getToolsByCategory(apiClient: any, _category: ToolCategory): MCP
 }
 
 // Re-export tool implementations
-export { HashrateStatsTool };
+export { HashrateStatsTool, PriceStatsTool, BlocksTool };
