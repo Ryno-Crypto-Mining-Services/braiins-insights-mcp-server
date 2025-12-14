@@ -1,8 +1,29 @@
 {
-  "version": "1.0.0",
-  "last_updated": "2025-12-12",
+  "version": "1.1.0",
+  "last_updated": "2025-12-13",
   "description": "Skills registry for dynamic skill discovery and loading",
   "skills": [
+    {
+      "name": "braiins-api-discovery",
+      "path": "braiins-api-discovery.md",
+      "category": "api-development",
+      "description": "Systematically explore Braiins Insights Dashboard API endpoints to discover undocumented parameters",
+      "triggers": ["discover api", "explore endpoint", "api discovery"]
+    },
+    {
+      "name": "braiins-type-system-design",
+      "path": "braiins-type-system-design.md",
+      "category": "api-development",
+      "description": "Design comprehensive TypeScript type systems for Braiins Insights API responses",
+      "triggers": ["design types", "create interfaces", "type system"]
+    },
+    {
+      "name": "braiins-tool-implementation",
+      "path": "braiins-tool-implementation.md",
+      "category": "api-development",
+      "description": "Implement production-quality MCP tools for Braiins Insights API endpoints",
+      "triggers": ["implement tool", "create mcp tool", "build tool"]
+    },
     {
       "name": "skill-creator",
       "path": "../../skills/skill-creator",
@@ -145,6 +166,10 @@
     }
   ],
   "categories": {
+    "api-development": {
+      "description": "API exploration, type design, and MCP tool implementation for Braiins Insights",
+      "skills_count": 3
+    },
     "meta": {
       "description": "Meta-skills for creating and managing other skills",
       "skills_count": 4

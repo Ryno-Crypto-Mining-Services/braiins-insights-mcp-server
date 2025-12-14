@@ -44,6 +44,7 @@ Bug Fix Example:
 
 ### By Category
 
+- **API Development** (3 skills): braiins-api-discovery, braiins-type-system-design, braiins-tool-implementation
 - **Meta** (4 skills): skill-creator, skill-orchestrator, agent-skill-bridge, using-superpowers
 - **Development** (2 skills): using-git-worktrees, subagent-driven-development
 - **Debugging** (1 skill): root-cause-tracing
@@ -74,6 +75,122 @@ Bug Fix Example:
 **Multi-Agent Orchestration**:
 ```bash
 # Use orchestration skills when parallelization needed
+```
+
+## Braiins Insights MCP Server - Project-Specific Skills
+
+This project includes three specialized skills for developing the Braiins Insights MCP Server:
+
+### 1. braiins-api-discovery
+
+**Purpose**: Systematically explore Braiins Insights Dashboard API endpoints to discover undocumented parameters, validate response structures, and generate comprehensive type definitions.
+
+**When to Use**:
+- Discovering undocumented query parameters for an endpoint
+- Validating API response structures against type definitions
+- Testing new or unknown API endpoints
+- Generating fixtures for integration tests
+- Before implementing a new MCP tool
+
+**Workflow**:
+1. Test baseline endpoint (no parameters)
+2. Systematic parameter discovery (pagination, date filtering, sorting)
+3. Edge case and error testing
+4. Generate discovery report, test fixtures, and type definitions
+
+**Outputs**:
+- Discovery report: `docs/api-discovery/{endpoint-name}.md`
+- Test fixtures: `tests/integration/fixtures/{endpoint-name}.json`
+- Type definitions: `src/types/insights-api.ts`
+
+**Command**: `/api-discover <endpoint-path>`
+
+### 2. braiins-type-system-design
+
+**Purpose**: Design comprehensive TypeScript type systems for Braiins Insights API responses with hierarchical interfaces, JSDoc documentation, and runtime validation.
+
+**When to Use**:
+- Creating initial type definitions for new API endpoints
+- Updating types after API discovery reveals new fields
+- Designing type hierarchies for related endpoints
+- Creating runtime type guards for validation
+- Generating Zod schemas from TypeScript interfaces
+
+**Workflow**:
+1. Analyze raw API response structure
+2. Design TypeScript interfaces with JSDoc
+3. Create query parameter types
+4. Create runtime type guards
+5. Create Zod schemas (optional)
+6. Design type hierarchies
+
+**Outputs**:
+- TypeScript interfaces: `src/types/insights-api.ts`
+- Type guards: `isHashrateStats()`, etc.
+- Zod schemas: `HashrateStatsSchema`, etc.
+
+**Used By**: `/api-discover`, `/implement-tool`
+
+### 3. braiins-tool-implementation
+
+**Purpose**: Implement production-quality MCP tools for Braiins Insights API endpoints with input validation, response formatting, error handling, and comprehensive tests.
+
+**When to Use**:
+- Implementing new MCP tools for Braiins Insights endpoints
+- Creating simple stats tools (no parameters)
+- Creating parameterized tools (with input validation)
+- Creating historical data tools (time-series)
+- Creating composite tools (multi-endpoint aggregators)
+
+**Tool Categories**:
+- **Simple Stats**: No parameters, returns current statistics
+- **Parameterized**: Accepts input parameters with Zod validation
+- **Historical**: Returns time-series data
+- **Composite**: Aggregates multiple endpoints
+
+**Workflow**:
+1. Define tool class (name, description, inputSchema)
+2. Implement execute() method with error handling
+3. Format response as LLM-friendly markdown
+4. Register tool in MCP server
+5. Create unit tests (>90% coverage)
+6. Create integration tests
+7. Update documentation
+
+**Outputs**:
+- Tool class: `src/tools/{category}/{tool-name}.ts`
+- Unit tests: `tests/unit/tools/{tool-name}.test.ts`
+- Integration tests: `tests/integration/tools/{tool-name}.integration.test.ts`
+
+**Command**: `/implement-tool <tool-name> --category <simple|parameterized|historical|composite>`
+
+### Workflow Example: Complete Tool Implementation
+
+```bash
+# 1. Discover API endpoint
+/api-discover /v1.0/hashrate-stats
+
+# Output:
+# - docs/api-discovery/hashrate-stats.md
+# - tests/integration/fixtures/hashrate-stats.json
+# - src/types/insights-api.ts (updated)
+
+# 2. Implement API client method (manual)
+# Edit src/api/insights-client.ts
+
+# 3. Implement MCP tool
+/implement-tool braiins_hashrate_stats --category simple
+
+# Output:
+# - src/tools/simple/hashrate-stats.ts
+# - tests/unit/tools/hashrate-stats.test.ts
+# - tests/integration/tools/hashrate-stats.integration.test.ts
+# - src/index.ts (updated)
+# - README.md (updated)
+
+# 4. Test
+npm test
+npm run test:integration
 ```
 
 ## Registry Structure
@@ -108,6 +225,13 @@ Use `skill-creator` skill to create new skills:
 ## Skill Development Status
 
 ### ✅ Production Skills (Active)
+
+**Project-Specific (Braiins Insights MCP Server)**:
+- braiins-api-discovery
+- braiins-type-system-design
+- braiins-tool-implementation
+
+**General Purpose**:
 - skill-creator
 - documentation-update
 - using-git-worktrees
@@ -147,6 +271,6 @@ This registry is automatically updated when:
 - Skills are removed or deprecated
 - Skill metadata changes
 
-**Last Updated**: 2025-12-12
-**Version**: 1.0.0
-**Maintained By**: Claude Command and Control Project
+**Last Updated**: 2025-12-13
+**Version**: 1.1.0
+**Maintained By**: Braiins Insights MCP Team (based on Claude Command and Control Project)
