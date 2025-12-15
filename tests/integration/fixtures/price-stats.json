@@ -1,0 +1,14 @@
+{
+  "endpoint": "/v1.0/price-stats",
+  "method": "GET",
+  "parameters": null,
+  "response": {
+    "status": 200,
+    "body": {
+      "price": 89316.0,
+      "percent_change_24h": -0.97,
+      "timestamp": "2025-12-14T16:23:00"
+    }
+  },
+  "captured_at": "2025-12-14T16:23:00Z"
+}
