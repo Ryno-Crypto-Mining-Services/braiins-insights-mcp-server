@@ -24,14 +24,16 @@ import {
   BraiinsInsightsTransactionStats,
   BraiinsInsightsCostToMine,
   BraiinsInsightsHalvingData,
-  BraiinsInsightsProfitability,
   BraiinsInsightsHardwareStats,
   BlocksQueryParams,
   CostToMineQueryParams,
-  ProfitabilityQueryParams,
   HardwareStatsRequest,
   isHashrateStats,
 } from '../types/insights-api.js';
+import {
+  BraiinsInsightsProfitability,
+  ProfitabilityQueryParams,
+} from '../types/profitability.js';
 
 /**
  * Base URL for Braiins Insights API

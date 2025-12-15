@@ -81,12 +81,18 @@ export class DifficultyStatsTool {
     // Current Metrics
     sections.push('## Current Metrics\n');
     sections.push(`- **Current Difficulty:** ${this.formatDifficulty(stats.current_difficulty)}`);
-    sections.push(
-      `- **Estimated Next Difficulty:** ${this.formatDifficulty(stats.estimated_next_difficulty)}`
-    );
-    sections.push(
-      `- **Estimated Change:** ${this.formatPercentChange(stats.estimated_difficulty_change_percent)}`
-    );
+
+    if (stats.estimated_next_difficulty !== undefined) {
+      sections.push(
+        `- **Estimated Next Difficulty:** ${this.formatDifficulty(stats.estimated_next_difficulty)}`
+      );
+    }
+
+    if (stats.estimated_change_percent !== undefined) {
+      sections.push(
+        `- **Estimated Change:** ${this.formatPercentChange(stats.estimated_change_percent)}`
+      );
+    }
 
     // Next Adjustment
     sections.push('\n## Next Adjustment\n');
@@ -98,17 +104,13 @@ export class DifficultyStatsTool {
       );
     }
 
-    if (stats.last_adjustment_time) {
-      sections.push(`- **Last Adjustment:** ${this.formatDate(stats.last_adjustment_time)}`);
+    if (stats.last_adjustment_date) {
+      sections.push(`- **Last Adjustment:** ${this.formatDate(stats.last_adjustment_date)}`);
     }
 
     // Footer
     sections.push('\n---\n');
     sections.push('*Data from [Braiins Insights Dashboard](https://insights.braiins.com)*');
-
-    if (stats.timestamp) {
-      sections.push(`*Timestamp: ${stats.timestamp}*`);
-    }
 
     return sections.join('\n');
   }

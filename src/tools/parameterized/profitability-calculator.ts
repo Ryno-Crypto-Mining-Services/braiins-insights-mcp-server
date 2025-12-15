@@ -42,8 +42,6 @@ const ProfitabilityInputSchema = z.object({
     .describe('Optional: Hardware cost for ROI calculation'),
 });
 
-type ProfitabilityInput = z.infer<typeof ProfitabilityInputSchema>;
-
 /**
  * Profitability Calculator Tool
  *

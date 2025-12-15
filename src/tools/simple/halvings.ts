@@ -83,18 +83,11 @@ export class HalvingsTool {
     sections.push(`- **Estimated Date:** ${this.formatDate(data.next_halving_date)}`);
     sections.push(`- **Countdown:** ${this.calculateCountdown(data.next_halving_date)}`);
     sections.push(
-      `- **Block Height:** ${this.formatBlockHeight(data.next_halving_block_height)}`
+      `- **Next Halving Block:** ${this.formatBlockHeight(data.next_halving_block)}`
     );
-    sections.push(`- **Current Block Height:** ${this.formatBlockHeight(data.current_block_height)}`);
-    sections.push(`- **Blocks Remaining:** ${this.formatBlockHeight(data.blocks_remaining)}`);
+    sections.push(`- **Blocks Until Halving:** ${this.formatBlockHeight(data.blocks_until_halving)}`);
     sections.push(`- **Current Block Reward:** ${data.current_reward_btc} BTC`);
     sections.push(`- **Next Block Reward:** ${data.next_reward_btc} BTC\n`);
-
-    // Historical Halvings Section (if available)
-    if (data.historical_halvings && data.historical_halvings.length > 0) {
-      sections.push('## Historical Halvings\n');
-      sections.push(this.formatHistoricalTable(data.historical_halvings));
-    }
 
     // Footer
     sections.push('\n---');
@@ -155,44 +148,6 @@ export class HalvingsTool {
    */
   private formatBlockHeight(height: number): string {
     return height.toLocaleString('en-US');
-  }
-
-  /**
-   * Format historical halvings as markdown table
-   */
-  private formatHistoricalTable(
-    events: Array<{ date: string; block_height: number; reward_btc: number; halving_number?: number }>
-  ): string {
-    const rows: string[] = [];
-
-    // Table header
-    rows.push('| Halving | Date | Block Height | Block Reward |');
-    rows.push('|---------|------|--------------|--------------|');
-
-    // Sort by block height ascending
-    const sortedEvents = [...events].sort((a, b) => a.block_height - b.block_height);
-
-    // Table rows
-    sortedEvents.forEach((event, index) => {
-      const halvingNumber = event.halving_number ?? index + 1;
-      const ordinal = this.getOrdinal(halvingNumber);
-      const date = this.formatDate(event.date).split(',')[0]; // Just the date part
-      const blockHeight = this.formatBlockHeight(event.block_height);
-      const reward = `${event.reward_btc} BTC`;
-
-      rows.push(`| ${ordinal} | ${date} | ${blockHeight} | ${reward} |`);
-    });
-
-    return rows.join('\n');
-  }
-
-  /**
-   * Get ordinal suffix for number (1st, 2nd, 3rd, etc.)
-   */
-  private getOrdinal(n: number): string {
-    const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
   }
 
   /**

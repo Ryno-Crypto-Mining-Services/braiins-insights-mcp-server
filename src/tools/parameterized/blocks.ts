@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { BraiinsInsightsBlockData, BlocksQueryParams } from '../../types/blocks-types.js';
+import { BraiinsInsightsBlockData, BlocksQueryParams } from '../../types/insights-api.js';
 import {
   InsightsApiClient,
   InsightsApiError,
@@ -181,7 +181,7 @@ export class BlocksTool {
     const tableRows = blocks
       .map(
         (block) =>
-          `| ${block.height.toLocaleString()} | ${block.pool_name} | ${this.formatRelativeTime(block.timestamp)} | ${block.transaction_count.toLocaleString()} | ${block.size_mb.toFixed(2)} MB | \`${this.formatBlockHash(block.hash)}\` |`
+          `| ${block.height.toLocaleString()} | ${block.pool_name || 'Unknown'} | ${this.formatRelativeTime(block.timestamp)} | ${block.transaction_count.toLocaleString()} | ${block.size_mb.toFixed(2)} MB | \`${this.formatBlockHash(block.hash || '')}\` |`
       )
       .join('\n');
 

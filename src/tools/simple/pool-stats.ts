@@ -8,7 +8,7 @@
  * @see https://insights.braiins.com/api/v1.0/pool-stats
  */
 
-import { BraiinsInsightsPoolStats, BraiinsInsightsPoolStat } from '../../types/insights-api.js';
+import { BraiinsInsightsPoolStats } from '../../types/insights-api.js';
 import {
   InsightsApiClient,
   InsightsApiError,
@@ -50,7 +50,10 @@ export class PoolStatsTool {
   async execute(_input: unknown): Promise<MCPToolResponse> {
     try {
       // Fetch data from API
-      const pools = await this.apiClient.getPoolStats();
+      const poolData = await this.apiClient.getPoolStats();
+
+      // Extract pools array from response
+      const pools = poolData.pools;
 
       // Handle empty results
       if (!pools || pools.length === 0) {
@@ -69,7 +72,7 @@ export class PoolStatsTool {
       const sortedPools = this.sortPoolsByHashrate(pools);
 
       // Format as markdown
-      const markdown = this.formatAsMarkdown(sortedPools);
+      const markdown = this.formatAsMarkdown(sortedPools, poolData.timestamp);
 
       return {
         content: [
@@ -88,14 +91,14 @@ export class PoolStatsTool {
   /**
    * Sort pools by effective hashrate (descending)
    */
-  private sortPoolsByHashrate(pools: BraiinsInsightsPoolStats): BraiinsInsightsPoolStats {
+  private sortPoolsByHashrate(pools: BraiinsInsightsPoolStats['pools']): BraiinsInsightsPoolStats['pools'] {
     return [...pools].sort((a, b) => b.hashrate_effective - a.hashrate_effective);
   }
 
   /**
    * Format pool stats as markdown for LLM consumption
    */
-  private formatAsMarkdown(pools: BraiinsInsightsPoolStats): string {
+  private formatAsMarkdown(pools: BraiinsInsightsPoolStats['pools'], timestamp?: string): string {
     // Calculate total network hashrate
     const totalHashrate = pools.reduce((sum, pool) => sum + pool.hashrate_effective, 0);
 
@@ -124,7 +127,7 @@ ${this.formatDistributionAnalysis(pools, totalHashrate)}
 
 ---
 
-*Data retrieved from [Braiins Insights Dashboard](https://insights.braiins.com)*
+*Data retrieved from [Braiins Insights Dashboard](https://insights.braiins.com)*${timestamp ? `\n*Last updated: ${timestamp}*` : ''}
     `.trim();
   }
 
@@ -132,7 +135,7 @@ ${this.formatDistributionAnalysis(pools, totalHashrate)}
    * Format pools as markdown table
    */
   private formatPoolTable(
-    pools: BraiinsInsightsPoolStats,
+    pools: BraiinsInsightsPoolStats['pools'],
     totalHashrate: number
   ): string {
     const header = `| Rank | Pool Name | Hashrate (EH/s) | Network % | Blocks (24h) | Blocks (1w) |
@@ -159,7 +162,7 @@ ${this.formatDistributionAnalysis(pools, totalHashrate)}
   /**
    * Calculate percentage of hashrate controlled by top N pools
    */
-  private calculateTopPoolConcentration(pools: BraiinsInsightsPoolStats, topN: number): number {
+  private calculateTopPoolConcentration(pools: BraiinsInsightsPoolStats['pools'], topN: number): number {
     const totalHashrate = pools.reduce((sum, pool) => sum + pool.hashrate_effective, 0);
     const topPoolsHashrate = pools
       .slice(0, topN)
@@ -172,7 +175,7 @@ ${this.formatDistributionAnalysis(pools, totalHashrate)}
    * Format distribution analysis text
    */
   private formatDistributionAnalysis(
-    pools: BraiinsInsightsPoolStats,
+    pools: BraiinsInsightsPoolStats['pools'],
     totalHashrate: number
   ): string {
     const largePoolCount = pools.filter((p) => (p.hashrate_effective / totalHashrate) * 100 > 10)

@@ -314,11 +314,38 @@ export interface BraiinsInsightsPoolStats {
     /** Pool name */
     name: string;
 
-    /** Hashrate percentage */
+    /** Hashrate percentage of network */
     hashrate_percent: number;
 
-    /** Number of blocks found in period */
-    blocks_found: number;
+    /** Effective hashrate in EH/s */
+    hashrate_effective: number;
+
+    /** Number of blocks found in various time periods */
+    blocks_mined: {
+      /** 1 day period */
+      '1d'?: {
+        absolute: number;
+        relative?: number;
+      };
+      /** 1 week period */
+      '1w'?: {
+        absolute: number;
+        relative?: number;
+      };
+      /** 5 day period */
+      '5d'?: {
+        absolute: number;
+        relative?: number;
+      };
+      /** 5 week period */
+      '5w'?: {
+        absolute: number;
+        relative?: number;
+      };
+    };
+
+    /** Total blocks found (legacy field) */
+    blocks_found?: number;
   }>;
 
   /** Timestamp of data */

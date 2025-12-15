@@ -72,22 +72,23 @@ export class PriceStatsTool {
    * Format price stats as markdown for LLM consumption
    */
   private formatAsMarkdown(stats: BraiinsInsightsPriceStats): string {
-    const priceChangeIndicator = this.getPriceChangeIndicator(stats.percent_change_24h);
+    const priceChangeIndicator = this.getPriceChangeIndicator(stats.price_change_24h_percent);
 
     return `
 # 💰 Bitcoin Price Statistics
 
 ## Current Price
 
-**${this.formatCurrency(stats.price)}**
+**${this.formatCurrency(stats.current_price_usd)}**
 
 ## 24-Hour Change
 
-${priceChangeIndicator} **${this.formatPercentage(stats.percent_change_24h)}**
+${priceChangeIndicator} **${this.formatPercentage(stats.price_change_24h_percent)}**
 
-## Data Timestamp
+## Market Data
 
-${this.formatTimestamp(stats.timestamp)}
+- **Market Cap:** ${this.formatCurrency(stats.market_cap_usd)}
+${stats.volume_24h_usd ? `- **24h Volume:** ${this.formatCurrency(stats.volume_24h_usd)}` : ''}
 
 ---
 
@@ -123,19 +124,6 @@ ${this.formatTimestamp(stats.timestamp)}
       return '📉'; // Downward trend
     } else {
       return '➡️'; // No change
-    }
-  }
-
-  /**
-   * Format ISO timestamp to human-readable format
-   */
-  private formatTimestamp(timestamp: string): string {
-    try {
-      const date = new Date(timestamp);
-      return date.toUTCString();
-    } catch {
-      // Fallback to raw timestamp if parsing fails
-      return timestamp;
     }
   }
 
