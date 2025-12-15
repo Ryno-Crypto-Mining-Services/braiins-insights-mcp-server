@@ -150,48 +150,155 @@ Response:
 
 ---
 
-## 🧰 Available Tools (17 Total)
+## 🧰 Available MCP Tools
 
-### Simple Stats (No Parameters)
+Currently **5 tools implemented** (17 planned). See [TOOL_CATALOG.md](./TOOL_CATALOG.md) for complete reference.
 
-#### braiins_hashrate_stats ✅ IMPLEMENTED
-Get current Bitcoin network hashrate statistics including:
-- Current hashrate and estimated hashrate (EH/s)
-- 30-day average hashrate
-- Hash price and hash value (USD/TH/day)
-- Transaction fee metrics (avg fees per block, fees as % of revenue)
-- 1-year hashrate change trends (relative % and absolute EH/s)
-- Daily network revenue (USD)
+### Simple Stats Tools (No Parameters Required)
+
+#### `braiins_hashrate_stats` ✅ IMPLEMENTED
+Get current Bitcoin network hashrate statistics including 30-day averages, hash price, transaction fees, and year-over-year trends.
 
 **Example Query:**
 ```
 "What's the current Bitcoin network hashrate?"
 ```
 
-**Response includes:**
-- Current Metrics (hashrate, estimated, 30-day avg)
-- Mining Economics (hash price, daily revenue)
-- Transaction Fees (avg per block, % of revenue)
-- 1-Year Trend (relative/absolute change)
+**Response Format:**
+- Current hashrate (EH/s) and estimated hashrate
+- 30-day average hashrate
+- Hash price and hash value (USD/TH/day)
+- Transaction fee metrics (avg fees per block, fees as % of revenue)
+- 1-year hashrate change (relative % and absolute EH/s)
+- Daily network revenue (USD)
 
+---
+
+#### `braiins_difficulty_stats` ✅ IMPLEMENTED
+Get current Bitcoin network difficulty statistics and next adjustment prediction.
+
+**Example Query:**
 ```
-braiins_difficulty_stats      // Mining difficulty + next adjustment
+"When is the next difficulty adjustment and what's the estimated change?"
+```
+
+**Response Format:**
+- Current difficulty (scientific notation + decimal)
+- Estimated next difficulty
+- Estimated difficulty change percentage
+- Blocks until next adjustment
+- Estimated adjustment time
+- Last adjustment time
+
+---
+
+#### `braiins_rss_feed_data` ✅ IMPLEMENTED
+Get recent Braiins blog posts, announcements, and news from the Braiins Insights RSS feed.
+
+**Example Query:**
+```
+"What are the latest Braiins news and announcements?"
+```
+
+**Response Format:**
+- Recent posts (up to 10 most recent)
+- Post titles with links
+- Publication dates and authors
+- Topic categories
+- Article summaries (truncated to 200 chars)
+
+---
+
+#### `braiins_halvings` ✅ IMPLEMENTED
+Get Bitcoin halving schedule including next halving countdown, block rewards, and historical halving events.
+
+**Example Query:**
+```
+"When is the next Bitcoin halving?"
+```
+
+**Response Format:**
+- Next halving estimated date
+- Countdown (years, days, hours)
+- Next halving block height
+- Current block height and blocks remaining
+- Current vs. next block reward (BTC)
+- Historical halvings table (date, block height, reward)
+
+---
+
+### Parameterized Tools (With Input Parameters)
+
+#### `braiins_blocks` ✅ IMPLEMENTED
+Get recent Bitcoin blocks with optional pagination and date range filtering.
+
+**Parameters:**
+- `page` (optional, default: 1) - Page number (1-indexed)
+- `page_size` (optional, default: 10) - Blocks per page (1-100)
+- `start_date` (optional) - Filter blocks after date (YYYY-MM-DD)
+- `end_date` (optional) - Filter blocks before date (YYYY-MM-DD)
+
+**Example Queries:**
+```
+"Show me the last 20 blocks"
+→ { page: 1, page_size: 20 }
+
+"Show blocks mined on December 10, 2025"
+→ { start_date: "2025-12-10", end_date: "2025-12-10", page_size: 50 }
+```
+
+**Response Format:**
+- Blocks table (height, pool, timestamp, tx count, size, hash)
+- Summary statistics (avg block size, avg transactions/block)
+- Filter information
+- Empty result handling with helpful messages
+
+---
+
+#### `braiins_profitability_calculator` ✅ IMPLEMENTED
+Calculate Bitcoin mining profitability based on electricity cost and hardware efficiency.
+
+**Parameters (REQUIRED):**
+- `electricity_cost_kwh` (required) - Electricity cost in USD per kWh (0-1)
+- `hardware_efficiency_jth` (required) - Hardware efficiency in J/TH (1-200)
+  - Examples: Antminer S19 Pro: ~29.5 J/TH, S21: ~17.5 J/TH
+
+**Parameters (OPTIONAL):**
+- `hardware_cost_usd` (optional) - Hardware cost for ROI calculation
+
+**Example Queries:**
+```
+"Is mining profitable at $0.08/kWh with an Antminer S19 Pro?"
+→ { electricity_cost_kwh: 0.08, hardware_efficiency_jth: 29.5 }
+
+"Calculate ROI for $3000 hardware at $0.05/kWh and 25 J/TH efficiency"
+→ { electricity_cost_kwh: 0.05, hardware_efficiency_jth: 25, hardware_cost_usd: 3000 }
+```
+
+**Response Format:**
+- Input parameters summary
+- Profitability indicator (profitable/unprofitable badge)
+- Daily metrics per TH/s (revenue, electricity cost, net profit)
+- Extended projections (monthly, annual profit)
+- ROI analysis (if hardware cost provided)
+- Break-even analysis (BTC price, hashrate, electricity threshold)
+- Network context (difficulty, market conditions)
+- Profitability warnings and recommendations
+
+---
+
+### Planned Tools (Not Yet Implemented)
+
+**Simple Stats:**
+```
 braiins_price_stats           // Bitcoin price + 24h change
 braiins_transaction_stats     // Mempool size, fees, confirmation times
 braiins_pool_stats            // Pool distribution by hashrate
-braiins_rss_feed_data         // Braiins blog/news feed
-braiins_halvings              // Next halving countdown + history
 ```
 
-### Parameterized Tools
+**Parameterized:**
 ```
-braiins_blocks({ page?, page_size?, start_date?, end_date? })
 braiins_blocks_by_country({ page?, page_size? })
-braiins_profitability_calculator({ 
-  electricity_cost_kwh: number,
-  hardware_efficiency_jth: number,
-  hardware_cost_usd?: number
-})
 braiins_cost_to_mine({ electricity_cost_kwh?: number })
 braiins_hardware_stats({ models?: string[] })  // POST endpoint
 ```
@@ -263,12 +370,15 @@ npm run test:e2e
 
 | Document | Description |
 |----------|-------------|
+| [TOOL_CATALOG.md](./TOOL_CATALOG.md) | **Complete MCP tool reference with all parameters and examples** |
+| [USAGE_EXAMPLES.md](./USAGE_EXAMPLES.md) | **Practical usage examples and integration patterns** |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Technical design, data flow, caching strategy |
 | [API.md](./API.md) | Braiins Insights API endpoint reference |
 | [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) | Implementation roadmap, phase breakdown |
 | [AGENTS.md](./AGENTS.md) | Multi-agent orchestration guide |
 | [CLAUDE.md](./CLAUDE.md) | Claude Desktop setup instructions |
 | [COPILOT.md](./COPILOT.md) | GitHub Copilot integration guide |
+| [CHANGELOG.md](./CHANGELOG.md) | Version history and release notes |
 
 ---
 

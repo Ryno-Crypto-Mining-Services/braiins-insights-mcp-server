@@ -691,6 +691,341 @@ ${data.blocks.map(b => `- Block ${b.height}: ${b.pool_name} (${b.transaction_cou
 
 ***
 
+## MCP Tool Architecture (Implemented Tools v0.2.0)
+
+### Tool Organization
+
+The MCP tool suite is organized into two main directories following the **simple vs parameterized** pattern:
+
+```
+src/tools/
+├── index.ts                    # Tool registry and exports
+├── simple/                     # Tools with no required parameters
+│   ├── hashrate-stats.ts       # ✅ IMPLEMENTED
+│   ├── difficulty-stats.ts     # ✅ IMPLEMENTED
+│   ├── rss-feed-data.ts       # ✅ IMPLEMENTED
+│   ├── halvings.ts            # ✅ IMPLEMENTED
+│   ├── price-stats.ts         # 📋 PLANNED
+│   ├── pool-stats.ts          # 📋 PLANNED
+│   └── transaction-stats.ts   # 📋 PLANNED
+└── parameterized/              # Tools with input parameters
+    ├── blocks.ts              # ✅ IMPLEMENTED
+    ├── profitability-calculator.ts  # ✅ IMPLEMENTED
+    ├── blocks-by-country.ts   # 📋 PLANNED
+    ├── cost-to-mine.ts        # 📋 PLANNED
+    └── hardware-stats.ts      # 📋 PLANNED
+```
+
+### Implemented Tools (v0.2.0)
+
+#### 1. Simple Stats Tools (3 implemented)
+
+**braiins_hashrate_stats** ✅
+- **Purpose:** Current Bitcoin network hashrate statistics
+- **Parameters:** None
+- **Response:** Hashrate (current, 30-day avg), hash price, transaction fees, 1-year trends
+- **Cache TTL:** 5 minutes
+- **API Endpoint:** `GET /v1.0/hashrate-stats`
+
+**braiins_difficulty_stats** ✅
+- **Purpose:** Mining difficulty and adjustment predictions
+- **Parameters:** None
+- **Response:** Current/estimated difficulty, blocks until adjustment, timestamps
+- **Cache TTL:** 5 minutes
+- **API Endpoint:** `GET /v1.0/difficulty-stats`
+
+**braiins_rss_feed_data** ✅
+- **Purpose:** Recent Braiins blog posts and announcements
+- **Parameters:** None
+- **Response:** Up to 10 recent posts with titles, links, dates, summaries
+- **Cache TTL:** None (dynamic content)
+- **API Endpoint:** `GET /v1.0/rss-feed-data`
+
+**braiins_halvings** ✅
+- **Purpose:** Bitcoin halving schedule and countdown
+- **Parameters:** None
+- **Response:** Next halving date, countdown, block heights, historical halvings
+- **Cache TTL:** 24 hours
+- **API Endpoint:** `GET /v2.0/halvings`
+
+#### 2. Parameterized Tools (2 implemented)
+
+**braiins_blocks** ✅
+- **Purpose:** Recent Bitcoin blocks with pagination and filtering
+- **Parameters:**
+  - `page` (optional, default: 1) - Page number
+  - `page_size` (optional, default: 10) - Blocks per page (1-100)
+  - `start_date` (optional) - Filter blocks after date (YYYY-MM-DD)
+  - `end_date` (optional) - Filter blocks before date (YYYY-MM-DD)
+- **Response:** Blocks table with height, pool, timestamp, tx count, size, hash
+- **Cache TTL:** 30 seconds (fast-changing data)
+- **API Endpoint:** `GET /v1.0/blocks`
+- **Validation:** Zod schema with date format and range validation
+
+**braiins_profitability_calculator** ✅
+- **Purpose:** Calculate mining profitability with electricity cost and hardware efficiency
+- **Parameters (REQUIRED):**
+  - `electricity_cost_kwh` (number, 0-1) - Electricity cost in USD/kWh
+  - `hardware_efficiency_jth` (number, 1-200) - Hardware efficiency in J/TH
+- **Parameters (OPTIONAL):**
+  - `hardware_cost_usd` (number, ≥0) - Hardware cost for ROI calculation
+- **Response:** Daily profit metrics, ROI analysis, break-even analysis, market conditions
+- **Cache TTL:** 5 minutes
+- **API Endpoint:** `GET /v2.0/profitability-calculator`
+- **Validation:** Zod schema with range constraints
+
+### Common Tool Patterns
+
+#### Pattern 1: Error Handling
+
+All tools follow a consistent error handling approach:
+
+```typescript
+async execute(input: unknown): Promise<MCPToolResponse> {
+  try {
+    // 1. Validate input (for parameterized tools)
+    const validatedInput = this.validateInput(input);
+
+    // 2. Fetch from API
+    const data = await this.apiClient.getSomeData(validatedInput);
+
+    // 3. Format as markdown
+    const markdown = this.formatAsMarkdown(data);
+
+    // 4. Return success response
+    return {
+      content: [{ type: 'text', text: markdown }],
+      isError: false
+    };
+  } catch (error) {
+    // 5. Handle errors uniformly
+    return this.handleError(error);
+  }
+}
+
+private handleError(error: unknown): MCPToolResponse {
+  if (error instanceof z.ZodError) {
+    // Validation errors with field-level details
+    return formatValidationError(error);
+  }
+  if (error instanceof InsightsApiError) {
+    // API errors with status code
+    return formatApiError(error);
+  }
+  if (error instanceof NetworkError) {
+    // Network connectivity errors
+    return formatNetworkError(error);
+  }
+  // Unknown errors
+  return formatUnexpectedError(error);
+}
+```
+
+#### Pattern 2: Markdown Formatting
+
+Tools convert JSON API responses to LLM-friendly markdown:
+
+```typescript
+private formatAsMarkdown(data: ApiResponse): string {
+  const sections: string[] = [];
+
+  // 1. Title with emoji
+  sections.push('# 📊 Tool Name\n');
+
+  // 2. Structured sections
+  sections.push('## Section 1\n');
+  sections.push(`- **Metric 1:** ${data.value1}`);
+  sections.push(`- **Metric 2:** ${data.value2}\n`);
+
+  // 3. Tables for list data (if applicable)
+  if (data.items && data.items.length > 0) {
+    sections.push('## Items\n');
+    sections.push('| Column 1 | Column 2 |');
+    sections.push('|----------|----------|');
+    data.items.forEach(item => {
+      sections.push(`| ${item.col1} | ${item.col2} |`);
+    });
+  }
+
+  // 4. Footer with metadata
+  sections.push('\n---');
+  sections.push('*Data from Braiins Insights Dashboard*');
+  sections.push(`*Timestamp: ${data.timestamp}*`);
+
+  return sections.join('\n');
+}
+```
+
+#### Pattern 3: Input Validation (Zod)
+
+Parameterized tools use Zod for type-safe validation:
+
+```typescript
+import { z } from 'zod';
+
+const ToolInputSchema = z.object({
+  param1: z.number()
+    .min(0, 'Param1 must be non-negative')
+    .max(100, 'Param1 cannot exceed 100')
+    .describe('Description of param1'),
+  param2: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
+    .optional()
+    .describe('Optional date parameter')
+}).refine(
+  (data) => customValidationLogic(data),
+  { message: 'Custom validation failed', path: ['param1'] }
+);
+
+type ToolInput = z.infer<typeof ToolInputSchema>;
+
+async execute(input: unknown): Promise<MCPToolResponse> {
+  try {
+    const validated = ToolInputSchema.parse(input);
+    // ... use validated input
+  } catch (error) {
+    // Zod errors provide detailed field-level messages
+    if (error instanceof z.ZodError) {
+      return this.formatValidationError(error);
+    }
+  }
+}
+```
+
+#### Pattern 4: Large Number Formatting
+
+Bitcoin metrics involve very large numbers - tools format them appropriately:
+
+```typescript
+// Hashrate: 750,000,000,000,000,000,000 hashes/second
+formatHashrate(value: number): string {
+  const ehs = value / 1e18;
+  return `${ehs.toFixed(2)} EH/s`;
+}
+
+// Difficulty: 109,780,000,000,000,000
+formatDifficulty(value: number): string {
+  return `${value.toExponential(2)} (${value.toLocaleString()})`;
+}
+
+// Currency
+formatCurrency(value: number): string {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+// Percentages
+formatPercent(value: number): string {
+  const sign = value >= 0 ? '+' : '';
+  return `${sign}${value.toFixed(2)}%`;
+}
+```
+
+#### Pattern 5: Empty Result Handling
+
+Tools handle empty API responses gracefully:
+
+```typescript
+if (data.length === 0 || !data) {
+  return {
+    content: [{
+      type: 'text',
+      text: `
+# 🔍 Tool Name
+
+⚠️ **No data found** for the specified criteria.
+
+**Filters Applied:**
+${this.formatFilters(params)}
+
+Try adjusting your filters or check back later.
+      `.trim()
+    }],
+    isError: false  // Not an error, just empty result
+  };
+}
+```
+
+### Type Safety
+
+All tools use strongly-typed interfaces from `src/types/`:
+
+```typescript
+// API response types
+import { BraiinsInsightsHashrateStats } from '../types/insights-api.js';
+import { BraiinsInsightsDifficultyStats } from '../types/insights-api.js';
+import { BraiinsInsightsBlockData } from '../types/blocks-types.js';
+import { BraiinsInsightsProfitability } from '../types/profitability.js';
+import { BraiinsInsightsHalvingData } from '../types/insights-api.js';
+
+// Query parameter types
+import { BlocksQueryParams } from '../types/blocks-types.js';
+import { ProfitabilityQueryParams } from '../types/profitability.js';
+
+// MCP response types
+import type { MCPToolResponse } from './index.js';
+```
+
+### Testing Strategy
+
+Each tool has comprehensive test coverage:
+
+**Unit Tests** (`tests/unit/tools/`):
+- Input validation (valid and invalid inputs)
+- Markdown formatting logic
+- Error handling paths
+- Edge cases (empty arrays, null fields, large numbers)
+
+**Integration Tests** (`tests/integration/tools/`):
+- Real API calls (marked with `@integration` tag)
+- Fixture-based tests with captured API responses
+- Response structure validation
+- Cache behavior verification
+
+**Test Coverage Requirements:**
+- Minimum 85% line coverage
+- All error paths tested
+- Edge cases covered (empty results, malformed data)
+
+### Performance Considerations
+
+**Caching Strategy by Tool:**
+
+| Tool | Cache TTL | Reason |
+|------|-----------|--------|
+| `braiins_blocks` | 30 seconds | Fast-changing (new blocks every ~10 min) |
+| `braiins_hashrate_stats` | 5 minutes | Moderate frequency updates |
+| `braiins_difficulty_stats` | 5 minutes | Changes every 2016 blocks (~2 weeks) |
+| `braiins_profitability_calculator` | 5 minutes | Depends on BTC price and difficulty |
+| `braiins_halvings` | 24 hours | Static until next halving |
+| `braiins_rss_feed_data` | None | Dynamic content, always fresh |
+
+**Response Time Targets:**
+- Simple stats tools: <500ms (from cache)
+- Parameterized tools: <1s (with validation)
+- Composite tools: <2s (parallel API calls)
+
+### Future Enhancements (Roadmap)
+
+**v0.3.0 (Next Release):**
+- ✅ Add remaining simple stats tools (price, pool, transaction)
+- ✅ Implement historical data tools (with date range support)
+- ✅ Add cost-to-mine calculator
+
+**v0.4.0 (Composite Tools):**
+- ✅ `braiins_mining_overview` (combines 4+ endpoints)
+- ✅ `braiins_profitability_deep_dive` (with historical context)
+- ✅ `braiins_network_health_monitor` (anomaly detection)
+
+**v0.5.0 (Advanced Features):**
+- ✅ Streaming support for large datasets
+- ✅ Webhook notifications for difficulty adjustments
+- ✅ Custom alert thresholds
+
+***
+
 ## Data Flow
 
 ### Request Flow: Simple Tool (No Parameters)
