@@ -5,9 +5,19 @@
  * Tools are organized by category: simple, parameterized, historical, composite.
  */
 
+// Simple tools (no parameters)
 import { HashrateStatsTool } from './simple/hashrate-stats.js';
+import { DifficultyStatsTool } from './simple/difficulty-stats.js';
 import { PriceStatsTool } from './simple/price-stats.js';
+import { PoolStatsTool } from './simple/pool-stats.js';
+import { RSSFeedDataTool } from './simple/rss-feed-data.js';
+import { HalvingsTool } from './simple/halvings.js';
+import { TransactionStatsTool } from './simple/transaction-stats.js';
+
+// Parameterized tools (require input)
 import { BlocksTool } from './parameterized/blocks.js';
+import { ProfitabilityCalculatorTool } from './parameterized/profitability-calculator.js';
+import { CostToMineTool } from './parameterized/cost-to-mine.js';
 
 /**
  * Tool registry interface
@@ -60,10 +70,17 @@ export function getAllTools(apiClient: any): MCPTool[] {
   return [
     // Simple tools (no parameters)
     new HashrateStatsTool(apiClient),
+    new DifficultyStatsTool(apiClient),
     new PriceStatsTool(apiClient),
+    new PoolStatsTool(apiClient),
+    new RSSFeedDataTool(apiClient),
+    new HalvingsTool(apiClient),
+    new TransactionStatsTool(apiClient),
 
     // Parameterized tools (require input)
     new BlocksTool(apiClient),
+    new ProfitabilityCalculatorTool(apiClient),
+    new CostToMineTool(apiClient),
   ];
 }
 
@@ -85,4 +102,17 @@ export function getToolsByCategory(apiClient: any, _category: ToolCategory): MCP
 }
 
 // Re-export tool implementations
-export { HashrateStatsTool, PriceStatsTool, BlocksTool };
+export {
+  // Simple tools
+  HashrateStatsTool,
+  DifficultyStatsTool,
+  PriceStatsTool,
+  PoolStatsTool,
+  RSSFeedDataTool,
+  HalvingsTool,
+  TransactionStatsTool,
+  // Parameterized tools
+  BlocksTool,
+  ProfitabilityCalculatorTool,
+  CostToMineTool,
+};
