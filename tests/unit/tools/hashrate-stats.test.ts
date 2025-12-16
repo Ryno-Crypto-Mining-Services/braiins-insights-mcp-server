@@ -103,5 +103,60 @@ describe('HashrateStatsTool', () => {
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Network Error');
     });
+
+    it('should handle generic unknown errors', async () => {
+      const unknownError = new Error('Something unexpected happened');
+      mockApiClient.getHashrateStats.mockRejectedValue(unknownError);
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Unexpected Error');
+      expect(result.content[0].text).toContain('Something unexpected happened');
+    });
+
+    it('should handle non-Error thrown values', async () => {
+      mockApiClient.getHashrateStats.mockRejectedValue('string error');
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Unexpected Error');
+    });
+  });
+
+  describe('execute - edge cases for formatting', () => {
+    it('should format larger hash values without scientific notation', async () => {
+      // Test the else branch of formatScientific (value >= 0.0001)
+      const statsWithLargeHashValue: BraiinsInsightsHashrateStats = {
+        ...SAMPLE_HASHRATE_STATS,
+        hash_value: 0.001, // Larger value that won't use scientific notation
+      };
+      mockApiClient.getHashrateStats.mockResolvedValue(statsWithLargeHashValue);
+
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
+
+      // Should format with fixed decimals, not scientific notation
+      expect(markdown).toContain('0.001000');
+    });
+
+    it('should format negative year-over-year change', async () => {
+      // Test negative percent change formatting
+      const statsWithNegativeChange: BraiinsInsightsHashrateStats = {
+        ...SAMPLE_HASHRATE_STATS,
+        monthly_avg_hashrate_change_1_year: {
+          relative: -0.05, // -5% decline
+          absolute: -52.5,
+        },
+      };
+      mockApiClient.getHashrateStats.mockResolvedValue(statsWithNegativeChange);
+
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
+
+      // Negative values should not have + prefix
+      expect(markdown).toContain('-5.00%');
+    });
   });
 });
