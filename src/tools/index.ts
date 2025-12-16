@@ -19,6 +19,12 @@ import { BlocksTool } from './parameterized/blocks.js';
 import { ProfitabilityCalculatorTool } from './parameterized/profitability-calculator.js';
 import { CostToMineTool } from './parameterized/cost-to-mine.js';
 
+// Historical tools (time-series data)
+import { DailyRevenueHistoryTool } from './historical/daily-revenue-history.js';
+import { HashrateAndDifficultyHistoryTool } from './historical/hashrate-and-difficulty-history.js';
+import { HashrateValueHistoryTool } from './historical/hashrate-value-history.js';
+import { TransactionFeesHistoryTool } from './historical/transaction-fees-history.js';
+
 // API client type
 import type { InsightsApiClient } from '../api/insights-client.js';
 
@@ -84,6 +90,12 @@ export function getAllTools(apiClient: InsightsApiClient): MCPTool[] {
     new BlocksTool(apiClient),
     new ProfitabilityCalculatorTool(apiClient),
     new CostToMineTool(apiClient),
+
+    // Historical tools (time-series data)
+    new DailyRevenueHistoryTool(apiClient),
+    new HashrateAndDifficultyHistoryTool(apiClient),
+    new HashrateValueHistoryTool(apiClient),
+    new TransactionFeesHistoryTool(apiClient),
   ];
 }
 
@@ -121,4 +133,9 @@ export {
   BlocksTool,
   ProfitabilityCalculatorTool,
   CostToMineTool,
+  // Historical tools
+  DailyRevenueHistoryTool,
+  HashrateAndDifficultyHistoryTool,
+  HashrateValueHistoryTool,
+  TransactionFeesHistoryTool,
 };

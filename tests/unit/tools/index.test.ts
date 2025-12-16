@@ -12,7 +12,7 @@ import {
   ToolCategory,
   MCPTool,
   MCPToolResponse,
-  // Re-exported tools
+  // Re-exported tools - Simple
   HashrateStatsTool,
   DifficultyStatsTool,
   PriceStatsTool,
@@ -20,9 +20,15 @@ import {
   RSSFeedDataTool,
   HalvingsTool,
   TransactionStatsTool,
+  // Re-exported tools - Parameterized
   BlocksTool,
   ProfitabilityCalculatorTool,
   CostToMineTool,
+  // Re-exported tools - Historical
+  DailyRevenueHistoryTool,
+  HashrateAndDifficultyHistoryTool,
+  HashrateValueHistoryTool,
+  TransactionFeesHistoryTool,
 } from '../../../src/tools/index.js';
 import type { InsightsApiClient } from '../../../src/api/insights-client.js';
 
@@ -92,9 +98,9 @@ describe('MCP Tool Registry', () => {
       expect(Array.isArray(tools)).toBe(true);
     });
 
-    it('should return 10 tools total', () => {
+    it('should return 14 tools total', () => {
       const tools = getAllTools(mockApiClient);
-      expect(tools).toHaveLength(10);
+      expect(tools).toHaveLength(14);
     });
 
     it('should include all simple tools', () => {
@@ -117,6 +123,16 @@ describe('MCP Tool Registry', () => {
       expect(toolNames).toContain('braiins_blocks');
       expect(toolNames).toContain('braiins_profitability_calculator');
       expect(toolNames).toContain('braiins_cost_to_mine');
+    });
+
+    it('should include all historical tools', () => {
+      const tools = getAllTools(mockApiClient);
+      const toolNames = tools.map((t) => t.name);
+
+      expect(toolNames).toContain('braiins_daily_revenue_history');
+      expect(toolNames).toContain('braiins_hashrate_and_difficulty_history');
+      expect(toolNames).toContain('braiins_hashrate_value_history');
+      expect(toolNames).toContain('braiins_transaction_fees_history');
     });
 
     it('should return new instances each call', () => {
@@ -255,6 +271,36 @@ describe('MCP Tool Registry', () => {
   });
 
   // ============================================================================
+  // Historical Tools Verification Tests
+  // ============================================================================
+
+  describe('historical tools (time-series data)', () => {
+    const historicalToolNames = [
+      'braiins_daily_revenue_history',
+      'braiins_hashrate_and_difficulty_history',
+      'braiins_hashrate_value_history',
+      'braiins_transaction_fees_history',
+    ];
+
+    it('should have optional limit parameter', () => {
+      const tools = getAllTools(mockApiClient);
+      const historicalTools = tools.filter((t) => historicalToolNames.includes(t.name));
+
+      historicalTools.forEach((tool) => {
+        const props = Object.keys(tool.inputSchema.properties);
+        expect(props).toContain('limit');
+        expect(tool.inputSchema.required).toEqual([]);
+      });
+    });
+
+    it('should have 4 historical tools', () => {
+      const tools = getAllTools(mockApiClient);
+      const historicalTools = tools.filter((t) => historicalToolNames.includes(t.name));
+      expect(historicalTools).toHaveLength(4);
+    });
+  });
+
+  // ============================================================================
   // getToolsByCategory Tests
   // ============================================================================
 
@@ -338,6 +384,30 @@ describe('MCP Tool Registry', () => {
       expect(CostToMineTool).toBeDefined();
       const tool = new CostToMineTool(mockApiClient);
       expect(tool.name).toBe('braiins_cost_to_mine');
+    });
+
+    it('should export DailyRevenueHistoryTool class', () => {
+      expect(DailyRevenueHistoryTool).toBeDefined();
+      const tool = new DailyRevenueHistoryTool(mockApiClient);
+      expect(tool.name).toBe('braiins_daily_revenue_history');
+    });
+
+    it('should export HashrateAndDifficultyHistoryTool class', () => {
+      expect(HashrateAndDifficultyHistoryTool).toBeDefined();
+      const tool = new HashrateAndDifficultyHistoryTool(mockApiClient);
+      expect(tool.name).toBe('braiins_hashrate_and_difficulty_history');
+    });
+
+    it('should export HashrateValueHistoryTool class', () => {
+      expect(HashrateValueHistoryTool).toBeDefined();
+      const tool = new HashrateValueHistoryTool(mockApiClient);
+      expect(tool.name).toBe('braiins_hashrate_value_history');
+    });
+
+    it('should export TransactionFeesHistoryTool class', () => {
+      expect(TransactionFeesHistoryTool).toBeDefined();
+      const tool = new TransactionFeesHistoryTool(mockApiClient);
+      expect(tool.name).toBe('braiins_transaction_fees_history');
     });
   });
 
