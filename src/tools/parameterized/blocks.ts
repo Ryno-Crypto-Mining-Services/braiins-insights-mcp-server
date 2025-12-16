@@ -181,7 +181,7 @@ export class BlocksTool {
     const tableRows = blocks
       .map(
         (block) =>
-          `| ${block.height.toLocaleString()} | ${block.pool_name || 'Unknown'} | ${this.formatRelativeTime(block.timestamp)} | ${block.transaction_count.toLocaleString()} | ${block.size_mb.toFixed(2)} MB | \`${this.formatBlockHash(block.hash || '')}\` |`
+          `| ${block.height.toLocaleString()} | ${block.pool_name ?? 'Unknown'} | ${this.formatRelativeTime(block.timestamp)} | ${block.transaction_count.toLocaleString()} | ${block.size_mb.toFixed(2)} MB | \`${this.formatBlockHash(block.hash ?? '')}\` |`
       )
       .join('\n');
 
@@ -246,8 +246,8 @@ ${tableRows}
 ⚠️ **No blocks found** for the specified criteria.
 
 **Filters:**
-- Page: ${params.page || 1}
-- Page Size: ${params.page_size || 10}${dateRange ? `\n- Date Range:${dateRange}` : ''}
+- Page: ${params.page ?? 1}
+- Page Size: ${params.page_size ?? 10}${dateRange ? `\n- Date Range:${dateRange}` : ''}
 
 Try adjusting your filters or page number.
     `.trim();

@@ -205,11 +205,7 @@ describe('HalvingsTool', () => {
 
   describe('execute - error handling', () => {
     it('should handle InsightsApiError', async () => {
-      const apiError = new InsightsApiError(
-        'API rate limit exceeded',
-        429,
-        '/v2.0/halvings'
-      );
+      const apiError = new InsightsApiError('API rate limit exceeded', 429, '/v2.0/halvings');
       mockApiClient.getHalvings.mockRejectedValue(apiError);
 
       const result = await tool.execute({});

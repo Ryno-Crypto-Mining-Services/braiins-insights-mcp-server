@@ -89,8 +89,10 @@ export class RSSFeedDataTool {
     const endpoint = '/v1.0/rss-feed-data';
 
     try {
-      // Access the private get method via any cast (temporary workaround)
+      // Access the private get method via type assertion (temporary workaround)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const client = this.apiClient as any;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const data = await client.get(endpoint);
 
       // Validate basic structure

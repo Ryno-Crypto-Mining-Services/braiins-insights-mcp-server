@@ -19,6 +19,9 @@ import { BlocksTool } from './parameterized/blocks.js';
 import { ProfitabilityCalculatorTool } from './parameterized/profitability-calculator.js';
 import { CostToMineTool } from './parameterized/cost-to-mine.js';
 
+// API client type
+import type { InsightsApiClient } from '../api/insights-client.js';
+
 /**
  * Tool registry interface
  *
@@ -66,7 +69,7 @@ export enum ToolCategory {
  * tools.forEach(tool => server.registerTool(tool));
  * ```
  */
-export function getAllTools(apiClient: any): MCPTool[] {
+export function getAllTools(apiClient: InsightsApiClient): MCPTool[] {
   return [
     // Simple tools (no parameters)
     new HashrateStatsTool(apiClient),
@@ -91,7 +94,10 @@ export function getAllTools(apiClient: any): MCPTool[] {
  * @param category - Tool category to filter by
  * @returns Array of tools in the specified category
  */
-export function getToolsByCategory(apiClient: any, _category: ToolCategory): MCPTool[] {
+export function getToolsByCategory(
+  apiClient: InsightsApiClient,
+  _category: ToolCategory
+): MCPTool[] {
   const allTools = getAllTools(apiClient);
 
   // Filter logic will be implemented when tools are registered

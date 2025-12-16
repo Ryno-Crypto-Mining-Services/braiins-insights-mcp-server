@@ -178,7 +178,7 @@ describe('DifficultyStatsTool', () => {
     it('should handle very large difficulty numbers', async () => {
       const statsWithLargeNumbers = {
         ...SAMPLE_DIFFICULTY_STATS,
-        current_difficulty: 999999999999999999,
+        current_difficulty: 9.99999999999999e17,
       };
       mockApiClient.getDifficultyStats.mockResolvedValue(statsWithLargeNumbers);
 

@@ -46,7 +46,7 @@ async function main(): Promise<void> {
    *
    * Returns available MCP tools to the client.
    */
-  server.setRequestHandler(ListToolsRequestSchema, async () => {
+  server.setRequestHandler(ListToolsRequestSchema, () => {
     return {
       tools: tools.map((tool) => ({
         name: tool.name,
