@@ -313,7 +313,9 @@ Try adjusting your filters or page number.
   private handleError(error: unknown): MCPToolResponse {
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map((err) => `- ${err.path.join('.')}: ${err.message}`);
+      const errorMessages = error.issues.map(
+        (err: z.ZodIssue) => `- ${err.path.join('.')}: ${err.message}`
+      );
       return {
         content: [
           {
