@@ -215,12 +215,14 @@ export class InsightsApiClient {
     const oneSecondAgo = now - 1_000;
 
     // Remove timestamps older than 1 minute
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     while (this.requestTimestamps.length > 0 && this.requestTimestamps[0]! < oneMinuteAgo) {
       this.requestTimestamps.shift();
     }
 
     // Check minute-level limit
     if (this.requestTimestamps.length >= MAX_REQUESTS_PER_MINUTE) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const oldestInWindow = this.requestTimestamps[0]!;
       const retryAfterMs = 60_000 - (now - oldestInWindow) + 100;
 

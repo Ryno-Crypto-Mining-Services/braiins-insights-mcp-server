@@ -8,7 +8,7 @@ import { BraiinsInsightsHashrateStats } from '../../../src/types/insights-api.js
 import { InsightsApiError, NetworkError } from '../../../src/api/insights-client.js';
 
 // Mock API client
-const createMockApiClient = () => ({
+const createMockApiClient = (): { getHashrateStats: jest.Mock } => ({
   getHashrateStats: jest.fn(),
 });
 

@@ -8,7 +8,7 @@ import { BraiinsInsightsPriceStats } from '../../../src/types/insights-api.js';
 import { InsightsApiError, NetworkError } from '../../../src/api/insights-client.js';
 
 // Mock API client
-const createMockApiClient = () => ({
+const createMockApiClient = (): { getPriceStats: jest.Mock } => ({
   getPriceStats: jest.fn(),
 });
 

@@ -17,7 +17,7 @@ interface RSSFeedItem {
 }
 
 // Mock API client with private get method
-const createMockApiClient = () => ({
+const createMockApiClient = (): { get: jest.Mock } => ({
   get: jest.fn(),
 });
 

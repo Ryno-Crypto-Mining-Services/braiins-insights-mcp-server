@@ -8,7 +8,7 @@ import { BraiinsInsightsHalvingData } from '../../../src/types/insights-api.js';
 import { InsightsApiError, NetworkError } from '../../../src/api/insights-client.js';
 
 // Mock API client
-const createMockApiClient = () => ({
+const createMockApiClient = (): { getHalvings: jest.Mock } => ({
   getHalvings: jest.fn(),
 });
 
