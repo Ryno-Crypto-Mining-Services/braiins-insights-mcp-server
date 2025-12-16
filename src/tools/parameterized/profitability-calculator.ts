@@ -182,10 +182,7 @@ ${this.formatROI(data, params)}
   /**
    * Format ROI section if hardware cost provided
    */
-  private formatROI(
-    data: BraiinsInsightsProfitability,
-    params: ProfitabilityQueryParams
-  ): string {
+  private formatROI(data: BraiinsInsightsProfitability, params: ProfitabilityQueryParams): string {
     if (!params.hardware_cost_usd || !data.roi_days) {
       return '';
     }
@@ -198,7 +195,7 @@ ${this.formatROI(data, params)}
 
 - **Hardware Cost:** $${this.formatCurrency(params.hardware_cost_usd)}
 - **Estimated ROI Period:** ${data.roi_days} days (${roiMonths} months / ${roiYears} years)
-- **Daily Progress:** ${((params.hardware_cost_usd / data.roi_days) / params.hardware_cost_usd * 100).toFixed(2)}% of investment
+- **Daily Progress:** ${((params.hardware_cost_usd / data.roi_days / params.hardware_cost_usd) * 100).toFixed(2)}% of investment
 `;
   }
 
@@ -206,10 +203,18 @@ ${this.formatROI(data, params)}
    * Get profitability badge emoji
    */
   private getProfitabilityBadge(profit: number): string {
-    if (profit > 0.05) return '(Highly Profitable)';
-    if (profit > 0.02) return '(Profitable)';
-    if (profit > 0) return '(Marginally Profitable)';
-    if (profit > -0.02) return '(Marginally Unprofitable)';
+    if (profit > 0.05) {
+      return '(Highly Profitable)';
+    }
+    if (profit > 0.02) {
+      return '(Profitable)';
+    }
+    if (profit > 0) {
+      return '(Marginally Profitable)';
+    }
+    if (profit > -0.02) {
+      return '(Marginally Unprofitable)';
+    }
     return '(Unprofitable)';
   }
 
@@ -217,11 +222,20 @@ ${this.formatROI(data, params)}
    * Get price comparison indicator
    */
   private getPriceComparison(data: BraiinsInsightsProfitability): string {
-    const margin = ((data.btc_price_usd - data.breakeven_btc_price) / data.breakeven_btc_price) * 100;
-    if (margin > 50) return '✅ (Well above break-even)';
-    if (margin > 20) return '✅ (Above break-even)';
-    if (margin > 0) return '⚠️ (Slightly above break-even)';
-    if (margin > -20) return '❌ (Below break-even)';
+    const margin =
+      ((data.btc_price_usd - data.breakeven_btc_price) / data.breakeven_btc_price) * 100;
+    if (margin > 50) {
+      return '✅ (Well above break-even)';
+    }
+    if (margin > 20) {
+      return '✅ (Above break-even)';
+    }
+    if (margin > 0) {
+      return '⚠️ (Slightly above break-even)';
+    }
+    if (margin > -20) {
+      return '❌ (Below break-even)';
+    }
     return '❌ (Well below break-even)';
   }
 
@@ -278,7 +292,9 @@ ${this.formatROI(data, params)}
   private handleError(error: unknown): MCPToolResponse {
     // Zod validation errors
     if (error instanceof z.ZodError) {
-      const issues = error.issues.map((issue) => `- ${issue.path.join('.')}: ${issue.message}`).join('\n');
+      const issues = error.issues
+        .map((issue) => `- ${issue.path.join('.')}: ${issue.message}`)
+        .join('\n');
       return {
         content: [
           {

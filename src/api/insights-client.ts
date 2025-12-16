@@ -30,10 +30,7 @@ import {
   HardwareStatsRequest,
   isHashrateStats,
 } from '../types/insights-api.js';
-import {
-  BraiinsInsightsProfitability,
-  ProfitabilityQueryParams,
-} from '../types/profitability.js';
+import { BraiinsInsightsProfitability, ProfitabilityQueryParams } from '../types/profitability.js';
 
 /**
  * Base URL for Braiins Insights API
@@ -449,7 +446,10 @@ export class InsightsApiClient {
    * @throws {InsightsApiError} If API returns error status
    */
   async getBlocks(params?: BlocksQueryParams): Promise<BraiinsInsightsBlockData[]> {
-    return this.get<BraiinsInsightsBlockData[]>('/v1.0/blocks', params as Record<string, string | number>);
+    return this.get<BraiinsInsightsBlockData[]>(
+      '/v1.0/blocks',
+      params as Record<string, string | number>
+    );
   }
 
   /**
@@ -463,8 +463,13 @@ export class InsightsApiClient {
    * @throws {NetworkError} If network request fails
    * @throws {InsightsApiError} If API returns error status
    */
-  async getBlocksByCountry(params?: Omit<BlocksQueryParams, 'start_date' | 'end_date'>): Promise<BraiinsInsightsBlocksByCountry[]> {
-    return this.get<BraiinsInsightsBlocksByCountry[]>('/v1.0/blocks-by-country', params as Record<string, string | number>);
+  async getBlocksByCountry(
+    params?: Omit<BlocksQueryParams, 'start_date' | 'end_date'>
+  ): Promise<BraiinsInsightsBlocksByCountry[]> {
+    return this.get<BraiinsInsightsBlocksByCountry[]>(
+      '/v1.0/blocks-by-country',
+      params as Record<string, string | number>
+    );
   }
 
   /**
@@ -590,7 +595,9 @@ export class InsightsApiClient {
    * @throws {NetworkError} If network request fails
    * @throws {InsightsApiError} If API returns error status
    */
-  async getHardwareStats(request: HardwareStatsRequest = {}): Promise<BraiinsInsightsHardwareStats[]> {
+  async getHardwareStats(
+    request: HardwareStatsRequest = {}
+  ): Promise<BraiinsInsightsHardwareStats[]> {
     return this.post<BraiinsInsightsHardwareStats[]>('/v1.0/hardware-stats', request);
   }
 
@@ -610,7 +617,10 @@ export class InsightsApiClient {
    * @throws {InsightsApiError} If API returns error status
    */
   async getCostToMine(params?: CostToMineQueryParams): Promise<BraiinsInsightsCostToMine> {
-    return this.get<BraiinsInsightsCostToMine>('/v2.0/cost-to-mine', params as Record<string, string | number>);
+    return this.get<BraiinsInsightsCostToMine>(
+      '/v2.0/cost-to-mine',
+      params as Record<string, string | number>
+    );
   }
 
   /**
@@ -638,8 +648,13 @@ export class InsightsApiClient {
    * @throws {NetworkError} If network request fails
    * @throws {InsightsApiError} If API returns error status
    */
-  async getProfitabilityCalculator(params: ProfitabilityQueryParams): Promise<BraiinsInsightsProfitability> {
-    return this.get<BraiinsInsightsProfitability>('/v2.0/profitability-calculator', params as unknown as Record<string, string | number>);
+  async getProfitabilityCalculator(
+    params: ProfitabilityQueryParams
+  ): Promise<BraiinsInsightsProfitability> {
+    return this.get<BraiinsInsightsProfitability>(
+      '/v2.0/profitability-calculator',
+      params as unknown as Record<string, string | number>
+    );
   }
 }
 

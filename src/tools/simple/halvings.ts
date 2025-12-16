@@ -9,11 +9,7 @@
  */
 
 import { BraiinsInsightsHalvingData } from '../../types/insights-api.js';
-import {
-  InsightsApiClient,
-  InsightsApiError,
-  NetworkError,
-} from '../../api/insights-client.js';
+import { InsightsApiClient, InsightsApiError, NetworkError } from '../../api/insights-client.js';
 import type { MCPToolResponse } from '../index.js';
 
 /**
@@ -82,10 +78,10 @@ export class HalvingsTool {
     sections.push('## Next Halving\n');
     sections.push(`- **Estimated Date:** ${this.formatDate(data.next_halving_date)}`);
     sections.push(`- **Countdown:** ${this.calculateCountdown(data.next_halving_date)}`);
+    sections.push(`- **Next Halving Block:** ${this.formatBlockHeight(data.next_halving_block)}`);
     sections.push(
-      `- **Next Halving Block:** ${this.formatBlockHeight(data.next_halving_block)}`
+      `- **Blocks Until Halving:** ${this.formatBlockHeight(data.blocks_until_halving)}`
     );
-    sections.push(`- **Blocks Until Halving:** ${this.formatBlockHeight(data.blocks_until_halving)}`);
     sections.push(`- **Current Block Reward:** ${data.current_reward_btc} BTC`);
     sections.push(`- **Next Block Reward:** ${data.next_reward_btc} BTC\n`);
 
@@ -102,14 +98,16 @@ export class HalvingsTool {
   private formatDate(isoDate: string): string {
     try {
       const date = new Date(isoDate);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC',
-      }) + ' UTC';
+      return (
+        date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'UTC',
+        }) + ' UTC'
+      );
     } catch {
       return isoDate;
     }

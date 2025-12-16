@@ -9,11 +9,7 @@
  */
 
 import { BraiinsInsightsPoolStats } from '../../types/insights-api.js';
-import {
-  InsightsApiClient,
-  InsightsApiError,
-  NetworkError,
-} from '../../api/insights-client.js';
+import { InsightsApiClient, InsightsApiError, NetworkError } from '../../api/insights-client.js';
 import type { MCPToolResponse } from '../index.js';
 
 /**
@@ -91,7 +87,9 @@ export class PoolStatsTool {
   /**
    * Sort pools by effective hashrate (descending)
    */
-  private sortPoolsByHashrate(pools: BraiinsInsightsPoolStats['pools']): BraiinsInsightsPoolStats['pools'] {
+  private sortPoolsByHashrate(
+    pools: BraiinsInsightsPoolStats['pools']
+  ): BraiinsInsightsPoolStats['pools'] {
     return [...pools].sort((a, b) => b.hashrate_effective - a.hashrate_effective);
   }
 
@@ -134,10 +132,7 @@ ${this.formatDistributionAnalysis(pools, totalHashrate)}
   /**
    * Format pools as markdown table
    */
-  private formatPoolTable(
-    pools: BraiinsInsightsPoolStats['pools'],
-    totalHashrate: number
-  ): string {
+  private formatPoolTable(pools: BraiinsInsightsPoolStats['pools'], totalHashrate: number): string {
     const header = `| Rank | Pool Name | Hashrate (EH/s) | Network % | Blocks (24h) | Blocks (1w) |
 |------|-----------|-----------------|-----------|--------------|-------------|`;
 
@@ -162,7 +157,10 @@ ${this.formatDistributionAnalysis(pools, totalHashrate)}
   /**
    * Calculate percentage of hashrate controlled by top N pools
    */
-  private calculateTopPoolConcentration(pools: BraiinsInsightsPoolStats['pools'], topN: number): number {
+  private calculateTopPoolConcentration(
+    pools: BraiinsInsightsPoolStats['pools'],
+    topN: number
+  ): number {
     const totalHashrate = pools.reduce((sum, pool) => sum + pool.hashrate_effective, 0);
     const topPoolsHashrate = pools
       .slice(0, topN)
@@ -178,16 +176,16 @@ ${this.formatDistributionAnalysis(pools, totalHashrate)}
     pools: BraiinsInsightsPoolStats['pools'],
     totalHashrate: number
   ): string {
-    const largePoolCount = pools.filter((p) => (p.hashrate_effective / totalHashrate) * 100 > 10)
-      .length;
-    const mediumPoolCount = pools.filter(
-      (p) => {
-        const percent = (p.hashrate_effective / totalHashrate) * 100;
-        return percent >= 5 && percent <= 10;
-      }
+    const largePoolCount = pools.filter(
+      (p) => (p.hashrate_effective / totalHashrate) * 100 > 10
     ).length;
-    const smallPoolCount = pools.filter((p) => (p.hashrate_effective / totalHashrate) * 100 < 5)
-      .length;
+    const mediumPoolCount = pools.filter((p) => {
+      const percent = (p.hashrate_effective / totalHashrate) * 100;
+      return percent >= 5 && percent <= 10;
+    }).length;
+    const smallPoolCount = pools.filter(
+      (p) => (p.hashrate_effective / totalHashrate) * 100 < 5
+    ).length;
 
     return `
 - **Large Pools (>10%):** ${largePoolCount}

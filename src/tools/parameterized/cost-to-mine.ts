@@ -9,10 +9,7 @@
  */
 
 import { z } from 'zod';
-import type {
-  BraiinsInsightsCostToMine,
-  CostToMineQueryParams,
-} from '../../types/insights-api.js';
+import type { BraiinsInsightsCostToMine, CostToMineQueryParams } from '../../types/insights-api.js';
 import {
   InsightsApiClient,
   InsightsApiError,
@@ -105,10 +102,7 @@ export class CostToMineTool {
   /**
    * Format cost-to-mine data as markdown for LLM consumption
    */
-  private formatAsMarkdown(
-    data: BraiinsInsightsCostToMine,
-    params: CostToMineQueryParams
-  ): string {
+  private formatAsMarkdown(data: BraiinsInsightsCostToMine, params: CostToMineQueryParams): string {
     const sections: string[] = [];
 
     sections.push('# ⚒️ Cost to Mine 1 BTC\n');
@@ -116,9 +110,7 @@ export class CostToMineTool {
     // Input Parameters
     if (params.electricity_cost_kwh !== undefined) {
       sections.push('## Input Parameters\n');
-      sections.push(
-        `- **Electricity Cost:** $${params.electricity_cost_kwh.toFixed(4)}/kWh\n`
-      );
+      sections.push(`- **Electricity Cost:** $${params.electricity_cost_kwh.toFixed(4)}/kWh\n`);
     }
 
     // Cost Metrics
@@ -128,9 +120,7 @@ export class CostToMineTool {
     );
 
     if (data.electricity_cost_kwh !== undefined) {
-      sections.push(
-        `- **Electricity Cost Used:** $${data.electricity_cost_kwh.toFixed(4)}/kWh`
-      );
+      sections.push(`- **Electricity Cost Used:** $${data.electricity_cost_kwh.toFixed(4)}/kWh`);
     }
 
     // Break-even Analysis
@@ -167,9 +157,15 @@ export class CostToMineTool {
    * Get cost indicator emoji
    */
   private getCostIndicator(costUsd: number): string {
-    if (costUsd < 20000) return '✅ (Low cost)';
-    if (costUsd < 40000) return '⚠️ (Moderate cost)';
-    if (costUsd < 60000) return '🔶 (High cost)';
+    if (costUsd < 20000) {
+      return '✅ (Low cost)';
+    }
+    if (costUsd < 40000) {
+      return '⚠️ (Moderate cost)';
+    }
+    if (costUsd < 60000) {
+      return '🔶 (High cost)';
+    }
     return '🔴 (Very high cost)';
   }
 
@@ -177,10 +173,18 @@ export class CostToMineTool {
    * Get margin indicator emoji
    */
   private getMarginIndicator(marginPercent: number): string {
-    if (marginPercent > 50) return '✅ (Highly profitable)';
-    if (marginPercent > 20) return '✅ (Profitable)';
-    if (marginPercent > 0) return '⚠️ (Marginally profitable)';
-    if (marginPercent > -20) return '❌ (Unprofitable)';
+    if (marginPercent > 50) {
+      return '✅ (Highly profitable)';
+    }
+    if (marginPercent > 20) {
+      return '✅ (Profitable)';
+    }
+    if (marginPercent > 0) {
+      return '⚠️ (Marginally profitable)';
+    }
+    if (marginPercent > -20) {
+      return '❌ (Unprofitable)';
+    }
     return '🔴 (Severely unprofitable)';
   }
 
@@ -242,7 +246,9 @@ export class CostToMineTool {
   private handleError(error: unknown): MCPToolResponse {
     // Zod validation errors
     if (error instanceof z.ZodError) {
-      const issues = error.issues.map((issue) => `- ${issue.path.join('.')}: ${issue.message}`).join('\n');
+      const issues = error.issues
+        .map((issue) => `- ${issue.path.join('.')}: ${issue.message}`)
+        .join('\n');
       return {
         content: [
           {

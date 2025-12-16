@@ -8,11 +8,7 @@
  * @see https://insights.braiins.com/api/v1.0/rss-feed-data
  */
 
-import {
-  InsightsApiClient,
-  InsightsApiError,
-  NetworkError,
-} from '../../api/insights-client.js';
+import { InsightsApiClient, InsightsApiError, NetworkError } from '../../api/insights-client.js';
 import type { MCPToolResponse } from '../index.js';
 
 /**
@@ -148,12 +144,7 @@ export class RSSFeedDataTool {
     const displayItems = sortedItems.slice(0, this.MAX_ITEMS);
 
     // Build markdown sections
-    const sections = [
-      '# 📰 Braiins News & Announcements',
-      '',
-      '**Recent Posts:**',
-      '',
-    ];
+    const sections = ['# 📰 Braiins News & Announcements', '', '**Recent Posts:**', ''];
 
     displayItems.forEach((item, index) => {
       sections.push(...this.formatFeedItem(item, index + 1));

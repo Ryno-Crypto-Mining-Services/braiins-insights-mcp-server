@@ -11,11 +11,7 @@
  */
 
 import { BraiinsInsightsHashrateStats } from '../../types/insights-api.js';
-import {
-  InsightsApiClient,
-  InsightsApiError,
-  NetworkError,
-} from '../../api/insights-client.js';
+import { InsightsApiClient, InsightsApiError, NetworkError } from '../../api/insights-client.js';
 import type { MCPToolResponse } from '../index.js';
 
 /**

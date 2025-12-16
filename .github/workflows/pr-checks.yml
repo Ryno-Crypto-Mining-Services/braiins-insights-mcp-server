@@ -1,0 +1,127 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  pr-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+
+  pr-size:
+    name: Check PR Size
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR size
+        run: |
+          FILES_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)
+          LINES_CHANGED=$(git diff --stat origin/${{ github.base_ref }}...HEAD | tail -1 | awk '{print $4 + $6}')
+
+          echo "Files changed: $FILES_CHANGED"
+          echo "Lines changed: $LINES_CHANGED"
+
+          if [ "$FILES_CHANGED" -gt 50 ]; then
+            echo "⚠️ Warning: This PR changes more than 50 files. Consider breaking it into smaller PRs."
+          fi
+
+          if [ "$LINES_CHANGED" -gt 1000 ]; then
+            echo "⚠️ Warning: This PR has more than 1000 lines changed. Consider breaking it into smaller PRs."
+          fi
+
+  pr-labels:
+    name: Check PR Labels
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Check for labels
+        run: |
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          if [ -z "$LABELS" ]; then
+            echo "❌ Error: PR must have at least one label"
+            echo "Please add one of: feature, bugfix, enhancement, documentation, breaking-change"
+            exit 1
+          fi
+          echo "✅ PR has labels: $LABELS"
+
+  changelog-check:
+    name: Check Changelog Update
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if CHANGELOG.md was updated
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "CHANGELOG.md"; then
+            echo "✅ CHANGELOG.md was updated"
+          else
+            echo "⚠️ Warning: CHANGELOG.md was not updated"
+            echo "Consider adding an entry to CHANGELOG.md for this change"
+          fi
+
+  breaking-changes:
+    name: Check for Breaking Changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for breaking changes
+        run: |
+          if echo "${{ github.event.pull_request.body }}" | grep -qi "breaking"; then
+            echo "⚠️ BREAKING CHANGE DETECTED"
+            echo "This PR contains breaking changes. Ensure:"
+            echo "1. Version is bumped appropriately (major version)"
+            echo "2. Migration guide is included in PR description"
+            echo "3. CHANGELOG.md documents the breaking change"
+          fi
+
+  ai-review:
+    name: AI Code Review Summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate review summary
+        run: |
+          echo "## 🤖 AI Review Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**PR Title:** ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Files Changed:** $(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changed Files" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          git diff --name-only origin/${{ github.base_ref }}...HEAD >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

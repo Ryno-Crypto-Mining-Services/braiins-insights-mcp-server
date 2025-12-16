@@ -9,11 +9,7 @@
  */
 
 import { BraiinsInsightsTransactionStats } from '../../types/insights-api.js';
-import {
-  InsightsApiClient,
-  InsightsApiError,
-  NetworkError,
-} from '../../api/insights-client.js';
+import { InsightsApiClient, InsightsApiError, NetworkError } from '../../api/insights-client.js';
 import type { MCPToolResponse } from '../index.js';
 
 /**
@@ -94,9 +90,7 @@ export class TransactionStatsTool {
     // 24h Activity
     if (stats.tx_count_24h !== undefined) {
       sections.push('\n## Network Activity (24h)\n');
-      sections.push(
-        `- **Total Transactions:** ${stats.tx_count_24h.toLocaleString()}`
-      );
+      sections.push(`- **Total Transactions:** ${stats.tx_count_24h.toLocaleString()}`);
       sections.push(
         `- **Average Tx/Block:** ${(stats.tx_count_24h / 144).toFixed(0)} (assuming ~144 blocks/day)`
       );
@@ -113,9 +107,15 @@ export class TransactionStatsTool {
    * Get mempool congestion indicator
    */
   private getMempoolIndicator(mempoolSize: number): string {
-    if (mempoolSize < 5000) return '✅ (Low congestion)';
-    if (mempoolSize < 50000) return '⚠️ (Moderate congestion)';
-    if (mempoolSize < 100000) return '🔶 (High congestion)';
+    if (mempoolSize < 5000) {
+      return '✅ (Low congestion)';
+    }
+    if (mempoolSize < 50000) {
+      return '⚠️ (Moderate congestion)';
+    }
+    if (mempoolSize < 100000) {
+      return '🔶 (High congestion)';
+    }
     return '🔴 (Very high congestion)';
   }
 
@@ -123,9 +123,15 @@ export class TransactionStatsTool {
    * Get fee level indicator
    */
   private getFeeIndicator(feeSatPerVByte: number): string {
-    if (feeSatPerVByte < 5) return '✅ (Low fees)';
-    if (feeSatPerVByte < 20) return '⚠️ (Moderate fees)';
-    if (feeSatPerVByte < 50) return '🔶 (High fees)';
+    if (feeSatPerVByte < 5) {
+      return '✅ (Low fees)';
+    }
+    if (feeSatPerVByte < 20) {
+      return '⚠️ (Moderate fees)';
+    }
+    if (feeSatPerVByte < 50) {
+      return '🔶 (High fees)';
+    }
     return '🔴 (Very high fees)';
   }
 

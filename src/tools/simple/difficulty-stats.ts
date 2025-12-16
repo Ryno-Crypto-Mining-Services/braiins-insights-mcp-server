@@ -10,11 +10,7 @@
  */
 
 import { BraiinsInsightsDifficultyStats } from '../../types/insights-api.js';
-import {
-  InsightsApiClient,
-  InsightsApiError,
-  NetworkError,
-} from '../../api/insights-client.js';
+import { InsightsApiClient, InsightsApiError, NetworkError } from '../../api/insights-client.js';
 import type { MCPToolResponse } from '../index.js';
 
 /**
@@ -96,7 +92,9 @@ export class DifficultyStatsTool {
 
     // Next Adjustment
     sections.push('\n## Next Adjustment\n');
-    sections.push(`- **Blocks Until Adjustment:** ${stats.blocks_until_adjustment.toLocaleString()}`);
+    sections.push(
+      `- **Blocks Until Adjustment:** ${stats.blocks_until_adjustment.toLocaleString()}`
+    );
 
     if (stats.estimated_adjustment_time) {
       sections.push(
