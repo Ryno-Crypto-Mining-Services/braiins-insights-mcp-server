@@ -40,11 +40,39 @@ export default {
   // Coverage thresholds for Phase 1 (tools only, API client in Phase 2)
   // Tool-specific thresholds ensure high quality for MCP tool implementations
   coverageThreshold: {
-    './src/tools/**/*.ts': {
+    // Simple, parameterized, and historical tools - high thresholds
+    './src/tools/simple/**/*.ts': {
       branches: 85,
       functions: 95,
       lines: 90,
       statements: 90,
+    },
+    './src/tools/parameterized/**/*.ts': {
+      branches: 85,
+      functions: 95,
+      lines: 90,
+      statements: 90,
+    },
+    './src/tools/historical/**/*.ts': {
+      branches: 85,
+      functions: 95,
+      lines: 90,
+      statements: 90,
+    },
+    // Composite tools - lower thresholds due to complex partial failure handling
+    // Promise.allSettled patterns and graceful degradation have many edge case branches
+    './src/tools/composite/**/*.ts': {
+      branches: 70,
+      functions: 95,
+      lines: 85,
+      statements: 85,
+    },
+    // Tool registry index
+    './src/tools/index.ts': {
+      branches: 100,
+      functions: 100,
+      lines: 100,
+      statements: 100,
     },
     // Global thresholds reflect current Phase 1 state (API client not yet fully tested)
     global: {

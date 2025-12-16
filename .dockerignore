@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Dependencies (installed fresh in container)
+node_modules
+
+# Build output (rebuilt in container)
+dist
+
+# Test files
+tests
+coverage
+*.test.ts
+*.spec.ts
+jest.config.js
+
+# Documentation
+docs
+*.md
+!README.md
+
+# IDE and editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github
+
+# Misc
+*.log
+*.tmp
+.env*
+!.env.example
