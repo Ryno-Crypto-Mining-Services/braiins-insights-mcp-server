@@ -277,7 +277,11 @@ describe('TransactionStatsTool', () => {
 
   describe('execute - error handling', () => {
     it('should handle InsightsApiError', async () => {
-      const apiError = new InsightsApiError('API rate limit exceeded', 429, '/v1.0/transaction-stats');
+      const apiError = new InsightsApiError(
+        'API rate limit exceeded',
+        429,
+        '/v1.0/transaction-stats'
+      );
       mockApiClient.getTransactionStats.mockRejectedValue(apiError);
 
       const result = await tool.execute({});

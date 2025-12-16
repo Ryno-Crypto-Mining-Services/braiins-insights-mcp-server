@@ -138,8 +138,12 @@ describe('PoolStatsTool', () => {
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      expect(markdown).toContain('| Rank | Pool Name | Hashrate (EH/s) | Network % | Blocks (24h) | Blocks (1w) |');
-      expect(markdown).toContain('|------|-----------|-----------------|-----------|--------------|-------------|');
+      expect(markdown).toContain(
+        '| Rank | Pool Name | Hashrate (EH/s) | Network % | Blocks (24h) | Blocks (1w) |'
+      );
+      expect(markdown).toContain(
+        '|------|-----------|-----------------|-----------|--------------|-------------|'
+      );
     });
 
     it('should calculate decentralization metrics', async () => {
@@ -178,7 +182,10 @@ describe('PoolStatsTool', () => {
 
   describe('execute - edge cases', () => {
     it('should handle empty pools array', async () => {
-      mockApiClient.getPoolStats.mockResolvedValue({ pools: [], timestamp: '2025-12-16T04:00:00Z' });
+      mockApiClient.getPoolStats.mockResolvedValue({
+        pools: [],
+        timestamp: '2025-12-16T04:00:00Z',
+      });
 
       const result = await tool.execute({});
 
