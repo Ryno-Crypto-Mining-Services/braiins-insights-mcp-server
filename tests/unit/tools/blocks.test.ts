@@ -447,6 +447,98 @@ describe('BlocksTool', () => {
     });
   });
 
+  describe('formatRelativeTime branches', () => {
+    it('should show "Just now" for blocks mined less than 1 minute ago', async () => {
+      // Create a block with timestamp less than 1 minute ago
+      const justNowBlock: BraiinsInsightsBlockData[] = [
+        {
+          height: 875433,
+          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
+          pool_name: 'Foundry USA',
+          timestamp: new Date().toISOString(), // Current time
+          transaction_count: 3000,
+          size_mb: 1.8,
+        },
+      ];
+      mockApiClient.getBlocks.mockResolvedValue(justNowBlock);
+
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
+
+      expect(markdown).toContain('Just now');
+    });
+
+    it('should show minutes ago for blocks mined 1-59 minutes ago', async () => {
+      // Create a block with timestamp 30 minutes ago
+      const thirtyMinsAgo = new Date();
+      thirtyMinsAgo.setMinutes(thirtyMinsAgo.getMinutes() - 30);
+
+      const minutesAgoBlock: BraiinsInsightsBlockData[] = [
+        {
+          height: 875433,
+          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
+          pool_name: 'AntPool',
+          timestamp: thirtyMinsAgo.toISOString(),
+          transaction_count: 2800,
+          size_mb: 1.7,
+        },
+      ];
+      mockApiClient.getBlocks.mockResolvedValue(minutesAgoBlock);
+
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
+
+      expect(markdown).toMatch(/\d+m ago/);
+    });
+
+    it('should show days ago for blocks mined more than 24 hours ago', async () => {
+      // Create a block with timestamp 3 days ago
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+      const daysAgoBlock: BraiinsInsightsBlockData[] = [
+        {
+          height: 875400,
+          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
+          pool_name: 'F2Pool',
+          timestamp: threeDaysAgo.toISOString(),
+          transaction_count: 3100,
+          size_mb: 1.85,
+        },
+      ];
+      mockApiClient.getBlocks.mockResolvedValue(daysAgoBlock);
+
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
+
+      expect(markdown).toMatch(/\d+d ago/);
+    });
+
+    it('should show hours ago for blocks mined 1-23 hours ago', async () => {
+      // Create a block with timestamp 5 hours ago
+      const fiveHoursAgo = new Date();
+      fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5);
+
+      const hoursAgoBlock: BraiinsInsightsBlockData[] = [
+        {
+          height: 875433,
+          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
+          pool_name: 'Braiins Pool',
+          timestamp: fiveHoursAgo.toISOString(),
+          transaction_count: 2500,
+          size_mb: 1.6,
+        },
+      ];
+      mockApiClient.getBlocks.mockResolvedValue(hoursAgoBlock);
+
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
+
+      expect(result.isError).toBe(false);
+      expect(markdown).toMatch(/\d+h ago/);
+    });
+  });
+
   describe('markdown formatting', () => {
     it('should format block table correctly', async () => {
       mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);

@@ -136,12 +136,9 @@ export class DifficultyStatsTool {
    * Format ISO 8601 date string to human-readable format
    */
   private formatDate(isoDate: string): string {
-    try {
-      const date = new Date(isoDate);
-      return date.toUTCString();
-    } catch {
-      return isoDate; // Return original if parsing fails
-    }
+    // Note: Date() returns "Invalid Date" for unparseable strings rather than throwing
+    const date = new Date(isoDate);
+    return date.toUTCString();
   }
 
   /**

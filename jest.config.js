@@ -35,6 +35,7 @@ export default {
     '!src/**/*.test.ts',
     '!src/**/*.spec.ts',
     '!src/index.ts',
+    '!src/types/**/*.ts', // Type definitions and validators tested separately
   ],
   // Coverage thresholds for Phase 1 (tools only, API client in Phase 2)
   // Tool-specific thresholds ensure high quality for MCP tool implementations

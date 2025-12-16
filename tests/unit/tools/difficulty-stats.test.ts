@@ -134,6 +134,25 @@ describe('DifficultyStatsTool', () => {
       expect(markdown).toContain('Current Difficulty');
       expect(markdown).toContain('Blocks Until Adjustment');
     });
+
+    it('should handle missing estimated fields', async () => {
+      // Test the else branches when estimated fields are undefined
+      const statsWithoutEstimates: BraiinsInsightsDifficultyStats = {
+        current_difficulty: 109780000000000000,
+        blocks_until_adjustment: 1234,
+        // estimated_next_difficulty is undefined
+        // estimated_change_percent is undefined
+      };
+      mockApiClient.getDifficultyStats.mockResolvedValue(statsWithoutEstimates);
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(false);
+      const markdown = result.content[0].text;
+      expect(markdown).toContain('Current Difficulty');
+      expect(markdown).not.toContain('Estimated Next Difficulty');
+      expect(markdown).not.toContain('Estimated Change');
+    });
   });
 
   describe('execute - error handling', () => {
@@ -171,6 +190,16 @@ describe('DifficultyStatsTool', () => {
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Unexpected Error');
     });
+
+    it('should handle non-Error thrown values', async () => {
+      mockApiClient.getDifficultyStats.mockRejectedValue('string error');
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Unexpected Error');
+      expect(result.content[0].text).toContain('string error');
+    });
   });
 
   describe('edge cases', () => {
@@ -186,6 +215,24 @@ describe('DifficultyStatsTool', () => {
       expect(result.isError).toBe(false);
       const markdown = result.content[0].text;
       expect(markdown).toContain('1.00e+18');
+    });
+
+    it('should format smaller difficulty values without scientific notation', async () => {
+      // Test the else branch of formatDifficulty (value < 1e15)
+      const statsWithSmallDifficulty = {
+        ...SAMPLE_DIFFICULTY_STATS,
+        current_difficulty: 500000000000000, // 5e14, below 1e15 threshold
+        estimated_next_difficulty: 510000000000000,
+      };
+      mockApiClient.getDifficultyStats.mockResolvedValue(statsWithSmallDifficulty);
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(false);
+      const markdown = result.content[0].text;
+      // Should show formatted number without scientific notation
+      expect(markdown).toContain('500,000,000,000,000');
+      expect(markdown).not.toContain('e+14');
     });
 
     it('should handle zero blocks until adjustment', async () => {

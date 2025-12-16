@@ -187,6 +187,27 @@ describe('HalvingsTool', () => {
       expect(markdown).toMatch(/~\d+ year/);
     });
 
+    it('should show days and hours when countdown is <= 365 days', async () => {
+      // Create a halving date 100 days in the future (tests line 138)
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 100);
+      futureDate.setHours(futureDate.getHours() + 12); // Add hours for test
+
+      const shortCountdownData: BraiinsInsightsHalvingData = {
+        ...SAMPLE_HALVING_DATA,
+        next_halving_date: futureDate.toISOString(),
+      };
+
+      mockApiClient.getHalvings.mockResolvedValue(shortCountdownData);
+
+      const result = await tool.execute({});
+      const markdown = result.content[0].text;
+
+      // Should show countdown in days and hours (not years)
+      expect(markdown).toMatch(/\d+ days, \d+ hours/);
+      expect(markdown).not.toContain('year');
+    });
+
     it('should handle past halving dates', async () => {
       const pastHalvingData: BraiinsInsightsHalvingData = {
         ...SAMPLE_HALVING_DATA,
