@@ -55,7 +55,7 @@
   "homepage": "https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "zod": "^3.23.8",
+    "zod": "^4.2.1",
     "winston": "^3.11.0"
   },
   "devDependencies": {
