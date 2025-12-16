@@ -303,9 +303,7 @@ describe('BlocksTool', () => {
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation Error');
-      expect(result.content[0].text).toContain(
-        'start_date must be before or equal to end_date'
-      );
+      expect(result.content[0].text).toContain('start_date must be before or equal to end_date');
     });
   });
 
@@ -392,11 +390,7 @@ describe('BlocksTool', () => {
 
   describe('execute - error handling', () => {
     it('should handle InsightsApiError', async () => {
-      const apiError = new InsightsApiError(
-        'API rate limit exceeded',
-        429,
-        '/v1.0/blocks'
-      );
+      const apiError = new InsightsApiError('API rate limit exceeded', 429, '/v1.0/blocks');
       mockApiClient.getBlocks.mockRejectedValue(apiError);
 
       const result = await tool.execute({});

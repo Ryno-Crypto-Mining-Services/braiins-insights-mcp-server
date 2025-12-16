@@ -36,16 +36,23 @@ export default {
     '!src/**/*.spec.ts',
     '!src/index.ts',
   ],
-  // Coverage thresholds temporarily disabled until all tools are implemented
-  // TODO: Re-enable once tool implementation is complete
-  // coverageThreshold: {
-  //   global: {
-  //     branches: 80,
-  //     functions: 80,
-  //     lines: 80,
-  //     statements: 80,
-  //   },
-  // },
+  // Coverage thresholds for Phase 1 (tools only, API client in Phase 2)
+  // Tool-specific thresholds ensure high quality for MCP tool implementations
+  coverageThreshold: {
+    './src/tools/**/*.ts': {
+      branches: 85,
+      functions: 95,
+      lines: 90,
+      statements: 90,
+    },
+    // Global thresholds reflect current Phase 1 state (API client not yet fully tested)
+    global: {
+      branches: 65,
+      functions: 70,
+      lines: 75,
+      statements: 75,
+    },
+  },
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
   testTimeout: 10000,
