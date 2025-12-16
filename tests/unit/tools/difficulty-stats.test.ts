@@ -16,11 +16,10 @@ const createMockApiClient = (): { getDifficultyStats: jest.Mock } => ({
 const SAMPLE_DIFFICULTY_STATS: BraiinsInsightsDifficultyStats = {
   current_difficulty: 109780000000000000,
   estimated_next_difficulty: 110500000000000000,
-  estimated_difficulty_change_percent: 0.656,
+  estimated_change_percent: 0.656,
   blocks_until_adjustment: 1234,
   estimated_adjustment_time: '2025-12-20T14:30:00Z',
-  last_adjustment_time: '2025-12-06T10:15:00Z',
-  timestamp: '2025-12-14T09:00:00Z',
+  last_adjustment_date: '2025-12-06T10:15:00Z',
 };
 
 describe('DifficultyStatsTool', () => {
@@ -89,7 +88,7 @@ describe('DifficultyStatsTool', () => {
     it('should format negative difficulty change correctly', async () => {
       const statsWithNegativeChange = {
         ...SAMPLE_DIFFICULTY_STATS,
-        estimated_difficulty_change_percent: -2.15,
+        estimated_change_percent: -2.15,
       };
       mockApiClient.getDifficultyStats.mockResolvedValue(statsWithNegativeChange);
 
@@ -123,7 +122,7 @@ describe('DifficultyStatsTool', () => {
       const minimalStats: BraiinsInsightsDifficultyStats = {
         current_difficulty: 109780000000000000,
         estimated_next_difficulty: 110500000000000000,
-        estimated_difficulty_change_percent: 0.656,
+        estimated_change_percent: 0.656,
         blocks_until_adjustment: 1234,
       };
       mockApiClient.getDifficultyStats.mockResolvedValue(minimalStats);

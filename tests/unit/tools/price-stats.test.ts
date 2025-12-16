@@ -14,21 +14,23 @@ const createMockApiClient = (): { getPriceStats: jest.Mock } => ({
 
 // Sample valid response data
 const SAMPLE_PRICE_STATS: BraiinsInsightsPriceStats = {
-  price: 89163.0,
-  percent_change_24h: -1.15,
-  timestamp: '2025-12-14T16:21:00',
+  current_price_usd: 89163.0,
+  price_change_24h_percent: -1.15,
+  market_cap_usd: 1750000000000,
+  volume_24h_usd: 45000000000,
 };
 
 const SAMPLE_PRICE_STATS_POSITIVE: BraiinsInsightsPriceStats = {
-  price: 45000.5,
-  percent_change_24h: 2.34,
-  timestamp: '2025-12-14T10:00:00',
+  current_price_usd: 45000.5,
+  price_change_24h_percent: 2.34,
+  market_cap_usd: 880000000000,
+  volume_24h_usd: 35000000000,
 };
 
 const SAMPLE_PRICE_STATS_ZERO: BraiinsInsightsPriceStats = {
-  price: 50000.0,
-  percent_change_24h: 0,
-  timestamp: '2025-12-14T12:00:00',
+  current_price_usd: 50000.0,
+  price_change_24h_percent: 0,
+  market_cap_usd: 980000000000,
 };
 
 describe('PriceStatsTool', () => {
@@ -129,9 +131,9 @@ describe('PriceStatsTool', () => {
   describe('execute - edge cases', () => {
     it('should handle very large price values', async () => {
       const largePrice: BraiinsInsightsPriceStats = {
-        price: 1234567.89,
-        percent_change_24h: 5.67,
-        timestamp: '2025-12-14T10:00:00',
+        current_price_usd: 1234567.89,
+        price_change_24h_percent: 5.67,
+        market_cap_usd: 24000000000000,
       };
       mockApiClient.getPriceStats.mockResolvedValue(largePrice);
 
@@ -143,9 +145,9 @@ describe('PriceStatsTool', () => {
 
     it('should handle very small price changes', async () => {
       const smallChange: BraiinsInsightsPriceStats = {
-        price: 50000.0,
-        percent_change_24h: 0.01,
-        timestamp: '2025-12-14T10:00:00',
+        current_price_usd: 50000.0,
+        price_change_24h_percent: 0.01,
+        market_cap_usd: 980000000000,
       };
       mockApiClient.getPriceStats.mockResolvedValue(smallChange);
 
@@ -157,9 +159,9 @@ describe('PriceStatsTool', () => {
 
     it('should handle large negative price changes', async () => {
       const largeNegative: BraiinsInsightsPriceStats = {
-        price: 30000.0,
-        percent_change_24h: -15.5,
-        timestamp: '2025-12-14T10:00:00',
+        current_price_usd: 30000.0,
+        price_change_24h_percent: -15.5,
+        market_cap_usd: 588000000000,
       };
       mockApiClient.getPriceStats.mockResolvedValue(largeNegative);
 

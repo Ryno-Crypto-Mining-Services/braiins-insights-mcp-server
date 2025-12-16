@@ -15,9 +15,8 @@ const createMockApiClient = (): { getHalvings: jest.Mock } => ({
 // Sample valid response data
 const SAMPLE_HALVING_DATA: BraiinsInsightsHalvingData = {
   next_halving_date: '2028-04-15T12:00:00Z',
-  next_halving_block_height: 1050000,
-  current_block_height: 875432,
-  blocks_remaining: 174568,
+  next_halving_block: 1050000,
+  blocks_until_halving: 174568,
   current_reward_btc: 3.125,
   next_reward_btc: 1.5625,
   historical_halvings: [
@@ -151,9 +150,8 @@ describe('HalvingsTool', () => {
     it('should handle data without historical halvings', async () => {
       const dataWithoutHistory: BraiinsInsightsHalvingData = {
         next_halving_date: '2028-04-15T12:00:00Z',
-        next_halving_block_height: 1050000,
-        current_block_height: 875432,
-        blocks_remaining: 174568,
+        next_halving_block: 1050000,
+        blocks_until_halving: 174568,
         current_reward_btc: 3.125,
         next_reward_btc: 1.5625,
       };
