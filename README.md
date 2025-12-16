@@ -417,7 +417,7 @@ Apache License 2.0 - see [LICENSE](./LICENSE) for details.
 
 - **Issues**: [GitHub Issues](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/discussions)
-- **Email**: support@ryno.services
+- **Email**: support@rynocrypto.com
 - **Discord**: [Join our community](https://discord.gg/ryno-crypto)
 
 ---
