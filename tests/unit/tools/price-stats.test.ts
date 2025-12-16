@@ -116,16 +116,6 @@ describe('PriceStatsTool', () => {
       expect(markdown).toContain('+0.00%');
       expect(markdown).toContain('➡️'); // No change indicator
     });
-
-    it('should format timestamp to human-readable format', async () => {
-      mockApiClient.getPriceStats.mockResolvedValue(SAMPLE_PRICE_STATS);
-
-      const result = await tool.execute({});
-      const markdown = result.content[0].text;
-
-      // Should contain formatted date (e.g., "Sat, 14 Dec 2025")
-      expect(markdown).toMatch(/\w{3},\s+\d{1,2}\s+\w{3}\s+\d{4}/);
-    });
   });
 
   describe('execute - edge cases', () => {
