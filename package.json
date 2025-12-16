@@ -24,7 +24,7 @@
     "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest --testMatch='**/tests/unit/**/*.test.ts'",
     "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --testMatch='**/tests/integration/**/*.test.ts'",
     "test:e2e": "NODE_OPTIONS=--experimental-vm-modules jest --testMatch='**/tests/e2e/**/*.test.ts'",
-    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --testMatch='**/tests/unit/**/*.test.ts'",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "clean": "rm -rf dist coverage",
     "prebuild": "npm run clean",
