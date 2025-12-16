@@ -29,6 +29,10 @@ import {
   HashrateAndDifficultyHistoryTool,
   HashrateValueHistoryTool,
   TransactionFeesHistoryTool,
+  // Re-exported tools - Composite
+  MiningOverviewTool,
+  ProfitabilityDeepDiveTool,
+  NetworkHealthMonitorTool,
 } from '../../../src/tools/index.js';
 import type { InsightsApiClient } from '../../../src/api/insights-client.js';
 
@@ -98,9 +102,9 @@ describe('MCP Tool Registry', () => {
       expect(Array.isArray(tools)).toBe(true);
     });
 
-    it('should return 14 tools total', () => {
+    it('should return 17 tools total', () => {
       const tools = getAllTools(mockApiClient);
-      expect(tools).toHaveLength(14);
+      expect(tools).toHaveLength(17);
     });
 
     it('should include all simple tools', () => {
@@ -133,6 +137,15 @@ describe('MCP Tool Registry', () => {
       expect(toolNames).toContain('braiins_hashrate_and_difficulty_history');
       expect(toolNames).toContain('braiins_hashrate_value_history');
       expect(toolNames).toContain('braiins_transaction_fees_history');
+    });
+
+    it('should include all composite tools', () => {
+      const tools = getAllTools(mockApiClient);
+      const toolNames = tools.map((t) => t.name);
+
+      expect(toolNames).toContain('braiins_mining_overview');
+      expect(toolNames).toContain('braiins_profitability_deep_dive');
+      expect(toolNames).toContain('braiins_network_health_monitor');
     });
 
     it('should return new instances each call', () => {
@@ -408,6 +421,24 @@ describe('MCP Tool Registry', () => {
       expect(TransactionFeesHistoryTool).toBeDefined();
       const tool = new TransactionFeesHistoryTool(mockApiClient);
       expect(tool.name).toBe('braiins_transaction_fees_history');
+    });
+
+    it('should export MiningOverviewTool class', () => {
+      expect(MiningOverviewTool).toBeDefined();
+      const tool = new MiningOverviewTool(mockApiClient);
+      expect(tool.name).toBe('braiins_mining_overview');
+    });
+
+    it('should export ProfitabilityDeepDiveTool class', () => {
+      expect(ProfitabilityDeepDiveTool).toBeDefined();
+      const tool = new ProfitabilityDeepDiveTool(mockApiClient);
+      expect(tool.name).toBe('braiins_profitability_deep_dive');
+    });
+
+    it('should export NetworkHealthMonitorTool class', () => {
+      expect(NetworkHealthMonitorTool).toBeDefined();
+      const tool = new NetworkHealthMonitorTool(mockApiClient);
+      expect(tool.name).toBe('braiins_network_health_monitor');
     });
   });
 

@@ -25,6 +25,11 @@ import { HashrateAndDifficultyHistoryTool } from './historical/hashrate-and-diff
 import { HashrateValueHistoryTool } from './historical/hashrate-value-history.js';
 import { TransactionFeesHistoryTool } from './historical/transaction-fees-history.js';
 
+// Composite tools (multi-endpoint aggregators)
+import { MiningOverviewTool } from './composite/mining-overview.js';
+import { ProfitabilityDeepDiveTool } from './composite/profitability-deep-dive.js';
+import { NetworkHealthMonitorTool } from './composite/network-health-monitor.js';
+
 // API client type
 import type { InsightsApiClient } from '../api/insights-client.js';
 
@@ -96,6 +101,11 @@ export function getAllTools(apiClient: InsightsApiClient): MCPTool[] {
     new HashrateAndDifficultyHistoryTool(apiClient),
     new HashrateValueHistoryTool(apiClient),
     new TransactionFeesHistoryTool(apiClient),
+
+    // Composite tools (multi-endpoint aggregators)
+    new MiningOverviewTool(apiClient),
+    new ProfitabilityDeepDiveTool(apiClient),
+    new NetworkHealthMonitorTool(apiClient),
   ];
 }
 
@@ -138,4 +148,8 @@ export {
   HashrateAndDifficultyHistoryTool,
   HashrateValueHistoryTool,
   TransactionFeesHistoryTool,
+  // Composite tools
+  MiningOverviewTool,
+  ProfitabilityDeepDiveTool,
+  NetworkHealthMonitorTool,
 };
