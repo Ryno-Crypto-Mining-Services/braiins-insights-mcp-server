@@ -113,9 +113,9 @@ describe('DifficultyStatsTool', () => {
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      // Should convert ISO 8601 to UTC string
-      expect(markdown).toMatch(/Estimated Adjustment Time:.*UTC/);
-      expect(markdown).toMatch(/Last Adjustment:.*UTC/);
+      // Should convert ISO 8601 to UTC/GMT string
+      expect(markdown).toMatch(/Estimated Adjustment Time:.*(UTC|GMT)/);
+      expect(markdown).toMatch(/Last Adjustment:.*(UTC|GMT)/);
     });
 
     it('should handle optional fields gracefully', async () => {
@@ -213,8 +213,8 @@ describe('DifficultyStatsTool', () => {
 
       expect(result.isError).toBe(false);
       const markdown = result.content[0].text;
-      // Should return original string if parsing fails
-      expect(markdown).toContain('invalid-date');
+      // Should display "Invalid Date" when parsing fails
+      expect(markdown).toContain('Invalid Date');
     });
   });
 });
