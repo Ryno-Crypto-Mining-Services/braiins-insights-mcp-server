@@ -37,6 +37,7 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     needs: validate
+    environment: production
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -59,31 +60,9 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  publish-github:
-    name: Publish to GitHub Packages
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-          registry-url: 'https://npm.pkg.github.com'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Publish to GitHub Packages
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Note: GitHub Packages (npm) skipped because package scope @ryno-crypto
+  # doesn't match GitHub org Ryno-Crypto-Mining-Services.
+  # Primary distribution is via npmjs.org and Docker via GHCR.
 
   publish-docker:
     name: Build and Push Docker Image
@@ -128,7 +107,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [publish-npm, publish-github, publish-docker]
+    needs: [publish-npm, publish-docker]
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -177,6 +156,5 @@ jobs:
         run: |
           echo "🎉 Successfully released version ${VERSION}"
           echo "📦 Published to npm: https://www.npmjs.com/package/@ryno-crypto/braiins-insights-mcp-server"
-          echo "📦 Published to GitHub Packages"
           echo "🐳 Docker image: ghcr.io/${REPOSITORY}:${VERSION}"
           echo "🔗 Release notes: ${SERVER_URL}/${REPOSITORY}/releases/tag/v${VERSION}"

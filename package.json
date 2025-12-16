@@ -1,6 +1,6 @@
 {
   "name": "@ryno-crypto/braiins-insights-mcp-server",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Model Context Protocol server for Braiins Insights Dashboard API",
   "type": "module",
   "main": "./dist/index.js",
