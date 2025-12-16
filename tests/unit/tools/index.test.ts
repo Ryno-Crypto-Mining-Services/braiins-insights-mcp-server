@@ -356,7 +356,7 @@ describe('MCP Tool Registry', () => {
           properties: {},
           required: [],
         },
-        execute: async () => ({ content: [{ type: 'text', text: 'test' }] }),
+        execute: () => Promise.resolve({ content: [{ type: 'text', text: 'test' }] }),
       };
 
       expect(mockTool.name).toBe('test_tool');

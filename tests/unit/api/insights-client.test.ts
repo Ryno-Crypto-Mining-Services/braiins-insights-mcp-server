@@ -5,6 +5,8 @@
  * error handling, and all public endpoint methods.
  */
 
+/* global Response, Headers */
+
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import {
   InsightsApiClient,
@@ -17,7 +19,7 @@ import type { BraiinsInsightsHashrateStats } from '../../../src/types/insights-a
 
 // Mock fetch globally
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
-global.fetch = mockFetch;
+(globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
 
 // Sample response data
 const SAMPLE_HASHRATE_STATS: BraiinsInsightsHashrateStats = {
@@ -260,10 +262,7 @@ describe('InsightsApiClient', () => {
 
       await client.getBlocks({ page: 2, page_size: 20 });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('page=2'),
-        expect.any(Object)
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('page=2'), expect.any(Object));
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('page_size=20'),
         expect.any(Object)
@@ -468,7 +467,7 @@ describe('InsightsApiClient', () => {
       const valueData = [{ timestamp: '2025-12-15', value_usd: 0.05 }];
       mockFetch.mockResolvedValueOnce(createMockResponse(valueData));
 
-      const result = await client.getHashrateValueHistory();
+      await client.getHashrateValueHistory();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/v1.0/hashrate-value-history'),
@@ -480,7 +479,7 @@ describe('InsightsApiClient', () => {
       const poolData = { pools: [{ name: 'Braiins', hashrate_percent: 5 }] };
       mockFetch.mockResolvedValueOnce(createMockResponse(poolData));
 
-      const result = await client.getPoolStats();
+      await client.getPoolStats();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/v1.0/pool-stats'),
@@ -492,7 +491,7 @@ describe('InsightsApiClient', () => {
       const priceData = { btc_usd: 100000, change_24h: 2.5 };
       mockFetch.mockResolvedValueOnce(createMockResponse(priceData));
 
-      const result = await client.getPriceStats();
+      await client.getPriceStats();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/v1.0/price-stats'),
@@ -517,7 +516,7 @@ describe('InsightsApiClient', () => {
       const feeData = [{ date: '2025-12-15', avg_fee_sat: 1000 }];
       mockFetch.mockResolvedValueOnce(createMockResponse(feeData));
 
-      const result = await client.getTransactionFeesHistory();
+      await client.getTransactionFeesHistory();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/v1.0/transaction-fees-history'),
@@ -529,7 +528,7 @@ describe('InsightsApiClient', () => {
       const txStats = { mempool_size: 5000, avg_confirmation_time: 600 };
       mockFetch.mockResolvedValueOnce(createMockResponse(txStats));
 
-      const result = await client.getTransactionStats();
+      await client.getTransactionStats();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/v1.0/transaction-stats'),
@@ -547,7 +546,7 @@ describe('InsightsApiClient', () => {
       const costData = { cost_usd: 45000, electricity_cost_kwh: 0.05 };
       mockFetch.mockResolvedValueOnce(createMockResponse(costData));
 
-      const result = await client.getCostToMine();
+      await client.getCostToMine();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/v2.0/cost-to-mine'),
@@ -575,7 +574,7 @@ describe('InsightsApiClient', () => {
       };
       mockFetch.mockResolvedValueOnce(createMockResponse(halvingData));
 
-      const result = await client.getHalvings();
+      await client.getHalvings();
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/v2.0/halvings'),
@@ -591,7 +590,7 @@ describe('InsightsApiClient', () => {
       };
       mockFetch.mockResolvedValueOnce(createMockResponse(profitData));
 
-      const result = await client.getProfitabilityCalculator({
+      await client.getProfitabilityCalculator({
         electricity_cost_kwh: 0.05,
         hardware_efficiency_jth: 25,
       });
