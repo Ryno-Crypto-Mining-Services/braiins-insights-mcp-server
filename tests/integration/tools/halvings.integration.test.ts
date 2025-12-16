@@ -47,9 +47,8 @@ describe('HalvingsTool Integration', () => {
     // Check for key metrics
     expect(markdown).toMatch(/Estimated Date:/);
     expect(markdown).toMatch(/Countdown:/);
-    expect(markdown).toMatch(/Block Height:/);
-    expect(markdown).toMatch(/Current Block Height:/);
-    expect(markdown).toMatch(/Blocks Remaining:/);
+    expect(markdown).toMatch(/Next Halving Block:/);
+    expect(markdown).toMatch(/Blocks Until Halving:/);
     expect(markdown).toMatch(/Current Block Reward:.*BTC/);
     expect(markdown).toMatch(/Next Block Reward:.*BTC/);
   }, 10000);
@@ -86,27 +85,18 @@ describe('HalvingsTool Integration', () => {
     const markdown = result.content[0].text;
 
     // Extract block heights (remove commas for parsing)
-    const currentHeightMatch = markdown.match(/Current Block Height:\s*([\d,]+)/);
-    const nextHeightMatch = markdown.match(/Block Height:\s*([\d,]+)/); // Next halving block height
-    const blocksRemainingMatch = markdown.match(/Blocks Remaining:\s*([\d,]+)/);
+    const nextHalvingBlockMatch = markdown.match(/Next Halving Block:\s*([\d,]+)/);
+    const blocksUntilHalvingMatch = markdown.match(/Blocks Until Halving:\s*([\d,]+)/);
 
-    expect(currentHeightMatch).toBeTruthy();
-    expect(nextHeightMatch).toBeTruthy();
-    expect(blocksRemainingMatch).toBeTruthy();
+    expect(nextHalvingBlockMatch).toBeTruthy();
+    expect(blocksUntilHalvingMatch).toBeTruthy();
 
-    if (currentHeightMatch && nextHeightMatch && blocksRemainingMatch) {
-      const currentHeight = parseInt(currentHeightMatch[1].replace(/,/g, ''), 10);
-      const nextHeight = parseInt(nextHeightMatch[1].replace(/,/g, ''), 10);
-      const blocksRemaining = parseInt(blocksRemainingMatch[1].replace(/,/g, ''), 10);
+    if (nextHalvingBlockMatch && blocksUntilHalvingMatch) {
+      const nextHeight = parseInt(nextHalvingBlockMatch[1].replace(/,/g, ''), 10);
+      const blocksRemaining = parseInt(blocksUntilHalvingMatch[1].replace(/,/g, ''), 10);
 
-      // Current block height should be positive and reasonable (>0)
-      expect(currentHeight).toBeGreaterThan(0);
-
-      // Next halving block should be higher than current
-      expect(nextHeight).toBeGreaterThan(currentHeight);
-
-      // Blocks remaining should equal the difference
-      expect(blocksRemaining).toBe(nextHeight - currentHeight);
+      // Next halving block should be positive
+      expect(nextHeight).toBeGreaterThan(0);
 
       // Bitcoin halvings occur every 210,000 blocks
       // Blocks remaining should be less than 210,000
@@ -193,13 +183,16 @@ describe('HalvingsTool Integration', () => {
     const markdown = result.content[0].text;
 
     // Large block heights should have commas
-    const blockHeightMatches = markdown.match(/Block Height:\s*([\d,]+)/g);
-    expect(blockHeightMatches).toBeTruthy();
+    const nextHalvingBlockMatch = markdown.match(/Next Halving Block:\s*([\d,]+)/);
+    const blocksUntilHalvingMatch = markdown.match(/Blocks Until Halving:\s*([\d,]+)/);
 
-    if (blockHeightMatches) {
-      // At least one block height should have a comma (for numbers >= 1,000)
-      const hasComma = blockHeightMatches.some((match) => match.includes(','));
-      expect(hasComma).toBe(true);
+    expect(nextHalvingBlockMatch).toBeTruthy();
+    expect(blocksUntilHalvingMatch).toBeTruthy();
+
+    if (nextHalvingBlockMatch && blocksUntilHalvingMatch) {
+      // Both should have commas (numbers are >= 1,000)
+      expect(nextHalvingBlockMatch[1]).toContain(',');
+      expect(blocksUntilHalvingMatch[1]).toContain(',');
     }
   }, 10000);
 
@@ -209,7 +202,7 @@ describe('HalvingsTool Integration', () => {
 
     // Bitcoin halving schedule is deterministic
     // Next halving block heights are multiples of 210,000
-    const nextHeightMatch = markdown.match(/Block Height:\s*([\d,]+)/);
+    const nextHeightMatch = markdown.match(/Next Halving Block:\s*([\d,]+)/);
 
     if (nextHeightMatch) {
       const nextHeight = parseInt(nextHeightMatch[1].replace(/,/g, ''), 10);
