@@ -169,71 +169,67 @@ export function isHashrateStats(obj: unknown): obj is BraiinsInsightsHashrateSta
  */
 export interface BraiinsInsightsDifficultyStats {
   /** Current network difficulty */
-  current_difficulty: number;
+  difficulty: number;
 
-  /** Estimated difficulty at next adjustment */
-  estimated_next_difficulty?: number;
+  /** Current block epoch (difficulty adjustment period, 2016 blocks each) */
+  block_epoch: number;
 
-  /** Estimated percent change at next adjustment */
-  estimated_change_percent?: number;
+  /** Average epoch block time in seconds */
+  epoch_block_time: number;
 
-  /** Number of blocks remaining until next difficulty adjustment */
-  blocks_until_adjustment: number;
+  /** Estimated adjustment as decimal (e.g., -0.005 = -0.5%) */
+  estimated_adjustment: number;
 
-  /** Estimated time until next adjustment (ISO 8601 format) */
-  estimated_adjustment_time?: string;
+  /** Estimated next difficulty */
+  estimated_next_diff: number;
 
-  /** Last difficulty adjustment date (ISO 8601 format) */
-  last_adjustment_date?: string;
+  /** Estimated adjustment date (ISO 8601 format) */
+  estimated_adjustment_date: string;
+
+  /** Previous adjustment as decimal */
+  previous_adjustment: number;
+
+  /** Year-over-year difficulty change as decimal */
+  year_difficulty_change: number;
+
+  /** Total difficulty change in current halving epoch as decimal */
+  current_halving_epoch_total_difficulty_change: number;
+
+  /** Total difficulty change in previous halving epoch as decimal */
+  previous_halving_epoch_total_difficulty_change: number;
+
+  /** Average difficulty change per epoch as decimal */
+  average_difficulty_change_per_epoch: number;
 }
 
 /**
  * Bitcoin block data from Braiins Insights Dashboard.
  *
- * Endpoint: GET /v1.0/blocks
- * Endpoint: POST /v1.0/blocks (with filters)
+ * Endpoint: GET /v1.0/blocks?limit=N
  */
 export interface BraiinsInsightsBlockData {
   /** Block height */
   height: number;
 
   /** Mining pool name */
-  pool_name?: string;
+  pool: string;
 
   /** Block timestamp (ISO 8601 format) */
   timestamp: string;
 
-  /** Number of transactions in block */
-  transaction_count: number;
+  /** Block value in BTC (reward + fees) */
+  block_value_btc: number;
 
-  /** Block size in megabytes */
-  size_mb: number;
-
-  /** Block hash */
-  hash?: string;
-
-  /** Block reward in BTC */
-  reward?: number;
-
-  /** Total fees in BTC */
-  fees?: number;
+  /** Block value in USD */
+  block_value_usd: number;
 }
 
 /**
  * Query parameters for blocks endpoint
  */
 export interface BlocksQueryParams {
-  /** Page number (1-indexed) */
-  page?: number;
-
-  /** Number of blocks per page */
-  page_size?: number;
-
-  /** Filter blocks after this date (ISO 8601) */
-  start_date?: string;
-
-  /** Filter blocks before this date (ISO 8601) */
-  end_date?: string;
+  /** Number of blocks to return (max 100) */
+  limit?: number;
 }
 
 /**
@@ -359,16 +355,13 @@ export interface BraiinsInsightsPoolStats {
  */
 export interface BraiinsInsightsPriceStats {
   /** Current BTC price in USD */
-  current_price_usd: number;
+  price: number;
 
   /** 24-hour price change percentage */
-  price_change_24h_percent: number;
+  percent_change_24h: number;
 
-  /** Market capitalization in USD */
-  market_cap_usd: number;
-
-  /** 24-hour trading volume in USD */
-  volume_24h_usd?: number;
+  /** Timestamp of the data (ISO 8601 format) */
+  timestamp: string;
 }
 
 /**

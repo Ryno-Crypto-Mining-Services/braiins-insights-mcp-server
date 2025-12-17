@@ -294,7 +294,7 @@ export class NetworkHealthMonitorTool {
    * Calculate block production score (0-30 points)
    *
    * Score based on average block time deviation from 10 min target.
-   * Uses blocks until next difficulty adjustment as a proxy.
+   * Uses epoch block time and estimated adjustment as metrics.
    */
   private calculateBlockProduction(difficultyStats: BraiinsInsightsDifficultyStats | null): number {
     if (!difficultyStats) {
@@ -303,25 +303,26 @@ export class NetworkHealthMonitorTool {
 
     let score = 30;
 
-    const { blocks_until_adjustment } = difficultyStats;
+    // Epoch block time in seconds (target is 600 seconds = 10 min)
+    const { epoch_block_time, estimated_adjustment } = difficultyStats;
 
-    // Difficulty adjusts every 2016 blocks (~2 weeks)
-    // If blocks_until_adjustment is far from expected (~1000-2016), timing is off
+    // Check if block time is significantly off from 10 min target
+    const blockTimeDeviation = (Math.abs(epoch_block_time - 600) / 600) * 100;
 
-    // If we're way ahead or behind schedule, penalize
-    if (blocks_until_adjustment > 1900) {
-      // Just adjusted, blocks coming slower than 10 min
-      score -= 10;
-    } else if (blocks_until_adjustment < 100) {
-      // About to adjust, check if it's early
-      if (difficultyStats.estimated_change_percent !== undefined) {
-        const changePercent = difficultyStats.estimated_change_percent;
-        if (Math.abs(changePercent) > 10) {
-          score -= 10; // Large adjustment needed
-        } else if (Math.abs(changePercent) > 5) {
-          score -= 5; // Moderate adjustment
-        }
-      }
+    if (blockTimeDeviation > 10) {
+      score -= 15; // Blocks coming too fast or slow
+    } else if (blockTimeDeviation > 5) {
+      score -= 10; // Moderate timing deviation
+    } else if (blockTimeDeviation > 2) {
+      score -= 5; // Slight timing deviation
+    }
+
+    // Check estimated adjustment magnitude (as decimal, e.g. 0.05 = 5%)
+    const changePercent = Math.abs(estimated_adjustment * 100);
+    if (changePercent > 10) {
+      score -= 10; // Large adjustment needed
+    } else if (changePercent > 5) {
+      score -= 5; // Moderate adjustment
     }
 
     return Math.max(0, score);
@@ -406,8 +407,8 @@ export class NetworkHealthMonitorTool {
     }
 
     // Check block time deviation
-    if (difficultyStats?.estimated_change_percent !== undefined) {
-      const changePercent = difficultyStats.estimated_change_percent;
+    if (difficultyStats) {
+      const changePercent = difficultyStats.estimated_adjustment * 100;
       if (Math.abs(changePercent) > 15) {
         alerts.push({
           severity: 'warning',
@@ -506,22 +507,21 @@ export class NetworkHealthMonitorTool {
     // Block Production
     if (difficultyStats) {
       sections.push('\n## ⏱️ Block Production\n');
+      sections.push(`- **Block Epoch:** ${difficultyStats.block_epoch.toLocaleString()}`);
       sections.push(
-        `- **Blocks Until Adjustment:** ${difficultyStats.blocks_until_adjustment.toLocaleString()}`
+        `- **Avg Epoch Block Time:** ${difficultyStats.epoch_block_time.toFixed(0)} seconds`
       );
 
-      if (difficultyStats.estimated_change_percent !== undefined) {
-        const change = difficultyStats.estimated_change_percent;
-        sections.push(
-          `- **Expected Difficulty Change:** ${change >= 0 ? '+' : ''}${change.toFixed(2)}%`
-        );
+      const change = difficultyStats.estimated_adjustment * 100;
+      sections.push(
+        `- **Expected Difficulty Change:** ${change >= 0 ? '+' : ''}${change.toFixed(2)}%`
+      );
 
-        const avgBlockTime = this.estimateAverageBlockTime(change);
-        sections.push(`- **Estimated Avg Block Time:** ~${avgBlockTime.toFixed(1)} minutes`);
-      }
+      const avgBlockTime = this.estimateAverageBlockTime(change);
+      sections.push(`- **Estimated Avg Block Time:** ~${avgBlockTime.toFixed(1)} minutes`);
 
-      if (difficultyStats.estimated_adjustment_time) {
-        const adjustmentDate = new Date(difficultyStats.estimated_adjustment_time);
+      if (difficultyStats.estimated_adjustment_date) {
+        const adjustmentDate = new Date(difficultyStats.estimated_adjustment_date);
         sections.push(
           `- **Next Adjustment:** ${adjustmentDate.toUTCString()} (${this.getTimeUntil(adjustmentDate)})`
         );

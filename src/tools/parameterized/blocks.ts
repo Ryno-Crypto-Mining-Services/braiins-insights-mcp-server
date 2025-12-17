@@ -21,47 +21,17 @@ import type { MCPToolResponse } from '../index.js';
 /**
  * Zod schema for blocks tool input validation
  *
- * Validates pagination parameters and date range filters
+ * Validates limit parameter
  */
-const BlocksInputSchema = z
-  .object({
-    page: z
-      .number()
-      .int()
-      .min(1, 'Page number must be at least 1')
-      .default(1)
-      .describe('Page number (1-indexed)'),
-    page_size: z
-      .number()
-      .int()
-      .min(1, 'Page size must be at least 1')
-      .max(100, 'Page size cannot exceed 100')
-      .default(10)
-      .describe('Number of blocks per page'),
-    start_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format')
-      .optional()
-      .describe('Filter blocks mined after this date (ISO 8601: YYYY-MM-DD)'),
-    end_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format')
-      .optional()
-      .describe('Filter blocks mined before this date (ISO 8601: YYYY-MM-DD)'),
-  })
-  .refine(
-    (data) => {
-      // Validate that start_date is before or equal to end_date if both are provided
-      if (data.start_date && data.end_date) {
-        return new Date(data.start_date) <= new Date(data.end_date);
-      }
-      return true;
-    },
-    {
-      message: 'start_date must be before or equal to end_date',
-      path: ['start_date'],
-    }
-  );
+const BlocksInputSchema = z.object({
+  limit: z
+    .number()
+    .int()
+    .min(1, 'Limit must be at least 1')
+    .max(100, 'Limit cannot exceed 100')
+    .default(10)
+    .describe('Number of blocks to return'),
+});
 
 type BlocksInput = z.infer<typeof BlocksInputSchema>;
 
@@ -85,28 +55,12 @@ export class BlocksTool {
   readonly inputSchema = {
     type: 'object' as const,
     properties: {
-      page: {
+      limit: {
         type: 'number',
-        description: 'Page number (1-indexed)',
-        default: 1,
-        minimum: 1,
-      },
-      page_size: {
-        type: 'number',
-        description: 'Number of blocks per page',
+        description: 'Number of blocks to return',
         default: 10,
         minimum: 1,
         maximum: 100,
-      },
-      start_date: {
-        type: 'string',
-        description: 'Filter blocks after this date (ISO 8601: YYYY-MM-DD)',
-        pattern: '^\\d{4}-\\d{2}-\\d{2}$',
-      },
-      end_date: {
-        type: 'string',
-        description: 'Filter blocks before this date (ISO 8601: YYYY-MM-DD)',
-        pattern: '^\\d{4}-\\d{2}-\\d{2}$',
       },
     },
     required: [] as string[],
@@ -117,7 +71,7 @@ export class BlocksTool {
   /**
    * Execute the tool
    *
-   * @param input - Tool input parameters (pagination and filters)
+   * @param input - Tool input parameters (limit)
    * @returns MCP response with formatted markdown
    */
   async execute(input: unknown): Promise<MCPToolResponse> {
@@ -127,17 +81,8 @@ export class BlocksTool {
 
       // Build query params
       const params: BlocksQueryParams = {
-        page: validatedInput.page,
-        page_size: validatedInput.page_size,
+        limit: validatedInput.limit,
       };
-
-      if (validatedInput.start_date) {
-        params.start_date = validatedInput.start_date;
-      }
-
-      if (validatedInput.end_date) {
-        params.end_date = validatedInput.end_date;
-      }
 
       // Fetch blocks from API
       const blocks = await this.apiClient.getBlocks(params);
@@ -175,31 +120,27 @@ export class BlocksTool {
   /**
    * Format blocks as markdown table
    */
-  private formatAsMarkdown(blocks: BraiinsInsightsBlockData[], params: BlocksInput): string {
-    const filterInfo = this.formatFilterInfo(params);
+  private formatAsMarkdown(blocks: BraiinsInsightsBlockData[], _params: BlocksInput): string {
     const summaryStats = this.calculateSummaryStats(blocks);
     const tableRows = blocks
       .map(
         (block) =>
-          `| ${block.height.toLocaleString()} | ${block.pool_name ?? 'Unknown'} | ${this.formatRelativeTime(block.timestamp)} | ${block.transaction_count.toLocaleString()} | ${block.size_mb.toFixed(2)} MB | \`${this.formatBlockHash(block.hash ?? '')}\` |`
+          `| ${block.height.toLocaleString()} | ${block.pool} | ${this.formatRelativeTime(block.timestamp)} | ${block.block_value_btc.toFixed(8)} BTC | $${block.block_value_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} |`
       )
       .join('\n');
 
     return `
 # 🧱 Recent Bitcoin Blocks
 
-${filterInfo}
+**Showing ${blocks.length} most recent blocks**
 
-**Blocks:**
-
-| Height  | Pool        | Timestamp    | Transactions | Size    | Hash (short) |
-|---------|-------------|--------------|--------------|---------|--------------|
+| Height  | Pool        | Timestamp    | Block Value (BTC) | Block Value (USD) |
+|---------|-------------|--------------|-------------------|-------------------|
 ${tableRows}
 
 **Summary:**
 - Total Blocks Displayed: ${blocks.length}
-- Average Block Size: ${summaryStats.avgSize.toFixed(2)} MB
-- Average Transactions/Block: ${summaryStats.avgTxCount.toFixed(0)}
+- Average Block Value: ${summaryStats.avgValueBtc.toFixed(8)} BTC ($${summaryStats.avgValueUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
 
 ---
 *Data retrieved from [Braiins Insights Dashboard](https://insights.braiins.com)*
@@ -208,48 +149,17 @@ ${tableRows}
   }
 
   /**
-   * Format filter information for display
-   */
-  private formatFilterInfo(params: BlocksInput): string {
-    const filters: string[] = [];
-
-    filters.push(`- Page: ${params.page}`);
-    filters.push(`- Page Size: ${params.page_size}`);
-
-    if (params.start_date) {
-      filters.push(`- Start Date: ${params.start_date}`);
-    }
-
-    if (params.end_date) {
-      filters.push(`- End Date: ${params.end_date}`);
-    }
-
-    return `**Filters Applied:**\n${filters.join('\n')}`;
-  }
-
-  /**
    * Format empty result message
    */
   private formatEmptyResult(params: BlocksQueryParams): string {
-    const dateRange =
-      params.start_date && params.end_date
-        ? ` between ${params.start_date} and ${params.end_date}`
-        : params.start_date
-          ? ` after ${params.start_date}`
-          : params.end_date
-            ? ` before ${params.end_date}`
-            : '';
-
     return `
 # 🧱 Recent Bitcoin Blocks
 
 ⚠️ **No blocks found** for the specified criteria.
 
-**Filters:**
-- Page: ${params.page ?? 1}
-- Page Size: ${params.page_size ?? 10}${dateRange ? `\n- Date Range:${dateRange}` : ''}
+**Limit:** ${params.limit ?? 10}
 
-Try adjusting your filters or page number.
+Try again later or check the Braiins Insights API status.
     `.trim();
   }
 
@@ -257,26 +167,16 @@ Try adjusting your filters or page number.
    * Calculate summary statistics for blocks
    */
   private calculateSummaryStats(blocks: BraiinsInsightsBlockData[]): {
-    avgSize: number;
-    avgTxCount: number;
+    avgValueBtc: number;
+    avgValueUsd: number;
   } {
-    const totalSize = blocks.reduce((sum, block) => sum + block.size_mb, 0);
-    const totalTxCount = blocks.reduce((sum, block) => sum + block.transaction_count, 0);
+    const totalValueBtc = blocks.reduce((sum, block) => sum + block.block_value_btc, 0);
+    const totalValueUsd = blocks.reduce((sum, block) => sum + block.block_value_usd, 0);
 
     return {
-      avgSize: blocks.length > 0 ? totalSize / blocks.length : 0,
-      avgTxCount: blocks.length > 0 ? totalTxCount / blocks.length : 0,
+      avgValueBtc: blocks.length > 0 ? totalValueBtc / blocks.length : 0,
+      avgValueUsd: blocks.length > 0 ? totalValueUsd / blocks.length : 0,
     };
-  }
-
-  /**
-   * Format block hash to show first and last 6 characters
-   */
-  private formatBlockHash(hash: string): string {
-    if (hash.length <= 16) {
-      return hash;
-    }
-    return `${hash.substring(0, 10)}...${hash.substring(hash.length - 6)}`;
   }
 
   /**

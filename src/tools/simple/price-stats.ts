@@ -68,28 +68,36 @@ export class PriceStatsTool {
    * Format price stats as markdown for LLM consumption
    */
   private formatAsMarkdown(stats: BraiinsInsightsPriceStats): string {
-    const priceChangeIndicator = this.getPriceChangeIndicator(stats.price_change_24h_percent);
+    const priceChangeIndicator = this.getPriceChangeIndicator(stats.percent_change_24h);
 
     return `
 # 💰 Bitcoin Price Statistics
 
 ## Current Price
 
-**${this.formatCurrency(stats.current_price_usd)}**
+**${this.formatCurrency(stats.price)}**
 
 ## 24-Hour Change
 
-${priceChangeIndicator} **${this.formatPercentage(stats.price_change_24h_percent)}**
-
-## Market Data
-
-- **Market Cap:** ${this.formatCurrency(stats.market_cap_usd)}
-${stats.volume_24h_usd ? `- **24h Volume:** ${this.formatCurrency(stats.volume_24h_usd)}` : ''}
+${priceChangeIndicator} **${this.formatPercentage(stats.percent_change_24h)}**
 
 ---
 
 *Data from [Braiins Insights Dashboard](https://insights.braiins.com)*
+*Last updated: ${this.formatTimestamp(stats.timestamp)}*
     `.trim();
+  }
+
+  /**
+   * Format timestamp to human-readable format
+   */
+  private formatTimestamp(timestamp: string): string {
+    try {
+      const date = new Date(timestamp);
+      return date.toUTCString();
+    } catch {
+      return timestamp;
+    }
   }
 
   /**

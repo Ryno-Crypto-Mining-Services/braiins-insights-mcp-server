@@ -364,22 +364,10 @@ export class ProfitabilityDeepDiveTool {
     );
 
     if (priceStats.success && priceStats.data) {
-      const priceChange = priceStats.data.price_change_24h_percent;
+      const priceChange = priceStats.data.percent_change_24h;
       const changeIndicator = priceChange >= 0 ? '📈' : '📉';
       const sign = priceChange >= 0 ? '+' : '';
       sections.push(`- **24h Price Change:** ${sign}${priceChange.toFixed(2)}% ${changeIndicator}`);
-
-      if (priceStats.data.market_cap_usd) {
-        sections.push(
-          `- **Market Cap:** $${this.formatLargeNumber(priceStats.data.market_cap_usd)}`
-        );
-      }
-
-      if (priceStats.data.volume_24h_usd) {
-        sections.push(
-          `- **24h Volume:** $${this.formatLargeNumber(priceStats.data.volume_24h_usd)}`
-        );
-      }
     }
 
     sections.push(`\n**Market Condition:** ${this.getMarketCondition(profitability)}`);
@@ -579,17 +567,6 @@ export class ProfitabilityDeepDiveTool {
 
   private formatDifficulty(value: number): string {
     return value.toExponential(2);
-  }
-
-  private formatLargeNumber(value: number): string {
-    if (value >= 1e12) {
-      return `${(value / 1e12).toFixed(2)}T`;
-    } else if (value >= 1e9) {
-      return `${(value / 1e9).toFixed(2)}B`;
-    } else if (value >= 1e6) {
-      return `${(value / 1e6).toFixed(2)}M`;
-    }
-    return this.formatCurrency(value);
   }
 
   /**

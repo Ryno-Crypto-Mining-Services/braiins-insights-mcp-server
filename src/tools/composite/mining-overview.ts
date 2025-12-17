@@ -138,7 +138,7 @@ export class MiningOverviewTool {
       this.apiClient.getDifficultyStats(),
       this.apiClient.getPriceStats(),
       params.include_recent_blocks
-        ? this.apiClient.getBlocks({ page: 1, page_size: params.block_count })
+        ? this.apiClient.getBlocks({ limit: params.block_count })
         : Promise.resolve([] as BraiinsInsightsBlockData[]),
     ]);
 
@@ -202,20 +202,14 @@ export class MiningOverviewTool {
     sections.push('## ⛏️ Difficulty Status\n');
     if (results.difficulty.status === 'fulfilled' && results.difficulty.data) {
       const stats = results.difficulty.data;
-      sections.push(`- **Current Difficulty:** ${this.formatDifficulty(stats.current_difficulty)}`);
-      if (stats.estimated_next_difficulty !== undefined) {
-        sections.push(
-          `- **Estimated Next Difficulty:** ${this.formatDifficulty(stats.estimated_next_difficulty)}`
-        );
-      }
-      if (stats.estimated_change_percent !== undefined) {
-        sections.push(
-          `- **Expected Change:** ${this.formatPercentChange(stats.estimated_change_percent)}`
-        );
-      }
+      sections.push(`- **Current Difficulty:** ${this.formatDifficulty(stats.difficulty)}`);
       sections.push(
-        `- **Blocks Until Adjustment:** ${stats.blocks_until_adjustment.toLocaleString()}\n`
+        `- **Estimated Next Difficulty:** ${this.formatDifficulty(stats.estimated_next_diff)}`
       );
+      sections.push(
+        `- **Expected Change:** ${this.formatPercentChange(stats.estimated_adjustment * 100)}`
+      );
+      sections.push(`- **Block Epoch:** ${stats.block_epoch.toLocaleString()}\n`);
     } else {
       sections.push('⚠️ *Difficulty data unavailable*\n');
       warnings.push('Difficulty data could not be retrieved');
@@ -225,12 +219,11 @@ export class MiningOverviewTool {
     sections.push('## 💰 Price Snapshot\n');
     if (results.price.status === 'fulfilled' && results.price.data) {
       const stats = results.price.data;
-      const priceChangeIndicator = this.getPriceChangeIndicator(stats.price_change_24h_percent);
-      sections.push(`- **Current Price:** ${this.formatCurrency(stats.current_price_usd)}`);
+      const priceChangeIndicator = this.getPriceChangeIndicator(stats.percent_change_24h);
+      sections.push(`- **Current Price:** ${this.formatCurrency(stats.price)}`);
       sections.push(
-        `- **24h Change:** ${priceChangeIndicator} ${this.formatPercentage(stats.price_change_24h_percent)}`
+        `- **24h Change:** ${priceChangeIndicator} ${this.formatPercentage(stats.percent_change_24h)}\n`
       );
-      sections.push(`- **Market Cap:** ${this.formatCurrency(stats.market_cap_usd)}\n`);
     } else {
       sections.push('⚠️ *Price data unavailable*\n');
       warnings.push('Price data could not be retrieved');
@@ -243,12 +236,12 @@ export class MiningOverviewTool {
         const blocks = results.blocks.data;
         if (blocks.length > 0) {
           sections.push(
-            '| Height | Pool | Time | Transactions |',
-            '|--------|------|------|--------------|'
+            '| Height | Pool | Time | Value (BTC) |',
+            '|--------|------|------|-------------|'
           );
           blocks.forEach((block) => {
             sections.push(
-              `| ${block.height.toLocaleString()} | ${block.pool_name ?? 'Unknown'} | ${this.formatRelativeTime(block.timestamp)} | ${block.transaction_count.toLocaleString()} |`
+              `| ${block.height.toLocaleString()} | ${block.pool} | ${this.formatRelativeTime(block.timestamp)} | ${block.block_value_btc.toFixed(4)} |`
             );
           });
           sections.push('');
