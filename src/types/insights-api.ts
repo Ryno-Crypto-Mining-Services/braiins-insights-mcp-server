@@ -419,30 +419,186 @@ export interface BraiinsInsightsTransactionStats {
 }
 
 /**
- * Cost to mine one Bitcoin
+ * Cost to mine API response
  *
  * Endpoint: GET /v2.0/cost-to-mine
+ *
+ * @see https://academy.braiins.com/en/mining-insights/public-api/#cost-to-mine
  */
 export interface BraiinsInsightsCostToMine {
+  /** Input parameters echoed back with defaults filled in */
+  payload: CostToMinePayload;
+
+  /** Calculation results */
+  result: CostToMineResult;
+}
+
+/**
+ * Input payload echoed back from cost-to-mine API
+ */
+export interface CostToMinePayload {
+  /** Hashrate in TH/s */
+  hashrate_ths: number;
+
+  /** Power consumption in watts */
+  consumption_watts: number;
+
+  /** Average transaction fees in BTC (null = use current) */
+  avg_tx_fees_coin: number | null;
+
+  /** BTC price in USD (null = use current) */
+  price: number | null;
+
+  /** Network difficulty (null = use current) */
+  difficulty: number | null;
+
+  /** Block reward in BTC (null = use current) */
+  block_reward: number | null;
+
+  /** Pool fee rate (default 0.02 = 2%) */
+  revenue_fees_rate: number;
+
+  /** Profit fee rate (default 0.0) */
+  profit_fees_rate: number;
+
+  /** Income tax rate (default 0.0) */
+  income_tax_rate: number;
+
+  /** Expected yearly difficulty change rate (default 0.02 = 2%) */
+  yearly_difficulty_change_rate: number;
+
+  /** Expected yearly price change rate (default 0.0) */
+  yearly_price_change_rate: number;
+
+  /** Electricity price in USD per kWh */
+  electricity_price_per_kwh: number;
+
+  /** Capital expenditure (null = not specified) */
+  capex: number | null;
+
+  /** Monthly fixed operating expenses (default 0.0) */
+  monthly_fixed_opex: number;
+
+  /** Period resolution: '1m' (month), '2w' (2 weeks), '1w' (week), '1d' (day) */
+  period_resolution: '1m' | '2w' | '1w' | '1d';
+
+  /** Number of periods to calculate (default 24) */
+  periods: number;
+
+  /** Timestamp of calculation */
+  timestamp: string;
+
+  /** Whether to estimate future rewards accounting for halvings */
+  estimate_future_rewards: boolean;
+
+  /** Additional optional fields */
+  initial_hardware_value_fiat: number;
+  initial_infrastructure_value_fiat: number;
+  initial_fiat_holdings_fiat: number;
+  initial_coin_holdings_coin: number;
+  yearly_hardware_value_change_rate: number;
+  yearly_infrastructure_value_change_rate: number;
+  hodl_rate: number;
+  hodl_on_revenue_instead: boolean;
+  discount_rate: number;
+  loan_amount_fiat: number;
+  loan_interest_rate: number;
+  loan_payback_periods: number;
+  loan_to_value_ratio: number;
+  halving_difficulty_change: number;
+  periods_to_halving: number | null;
+}
+
+/**
+ * Cost to mine calculation results
+ */
+export interface CostToMineResult {
+  /** BTC mined per day at given hashrate */
+  coin_mined_daily: number;
+
+  /** Current network difficulty */
+  difficulty: number;
+
+  /** Break-even electricity price in USD/kWh */
+  fiat_break_even_electricity_price: number;
+
   /** Cost to mine 1 BTC in USD */
-  cost_usd: number;
+  fiat_cost: number;
 
-  /** Electricity cost per kWh used in calculation */
-  electricity_cost_kwh?: number;
+  /** Profit margin (current BTC price - cost to mine) in USD */
+  fiat_margin: number;
 
-  /** Break-even BTC price */
-  break_even_price_usd?: number;
+  /** Daily profit/loss in USD */
+  fiat_profit_daily: number;
 
-  /** Current profit margin */
-  margin_percent?: number;
+  /** Hardware efficiency in J/TH */
+  hardware_efficiency_j_th: number;
+
+  /** Cost line for chart (array of costs at different electricity prices) */
+  fiat_cost_line: number[];
+
+  /** Electricity prices for chart x-axis */
+  fiat_electricity_prices: number[];
+
+  /** Profit area for chart (array of profits at different electricity prices) */
+  fiat_profit_area: number[];
+
+  /** BTC price projections over periods */
+  price: number[];
+
+  /** Marginal cost to mine over periods */
+  marginal_cost_to_mine_fiat: number[];
+
+  /** Marginal electricity break-even over periods */
+  marginal_electricity_breakeven_fiat: number[];
+
+  /** Total cost to mine over periods */
+  total_cost_to_mine_fiat: number[];
+
+  /** Total electricity break-even over periods */
+  total_electricity_breakeven_fiat: number[];
 }
 
 /**
  * Query parameters for cost-to-mine endpoint
+ *
+ * Required: hashrate_ths, consumption_watts, electricity_price_per_kwh
+ *
+ * @see https://academy.braiins.com/en/mining-insights/public-api/#request-parameters
  */
 export interface CostToMineQueryParams {
-  /** Electricity cost in USD per kWh */
-  electricity_cost_kwh?: number;
+  /** Hashrate in TH/s (required) */
+  hashrate_ths: number;
+
+  /** Power consumption in watts (required) */
+  consumption_watts: number;
+
+  /** Electricity price in USD per kWh (required) */
+  electricity_price_per_kwh: number;
+
+  /** Average transaction fees in BTC (optional, uses current if not specified) */
+  avg_tx_fees_coin?: number;
+
+  /** BTC price in USD (optional, uses current if not specified) */
+  price?: number;
+
+  /** Network difficulty (optional, uses current if not specified) */
+  difficulty?: number;
+
+  /** Block reward in BTC (optional, uses current if not specified) */
+  block_reward?: number;
+
+  /** Pool fee rate (optional, default 0.02 = 2%) */
+  revenue_fees_rate?: number;
+
+  /** Expected yearly difficulty change rate (optional, default 0.02) */
+  yearly_difficulty_change_rate?: number;
+
+  /** Period resolution: '1m', '2w', '1w', '1d' (optional, default '1m') */
+  period_resolution?: '1m' | '2w' | '1w' | '1d';
+
+  /** Number of periods (optional, default 24) */
+  periods?: number;
 }
 
 /**

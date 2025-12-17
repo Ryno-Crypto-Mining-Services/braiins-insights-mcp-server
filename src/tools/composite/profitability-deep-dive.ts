@@ -40,6 +40,11 @@ const ProfitabilityDeepDiveInputSchema = z.object({
     .min(1, 'Hardware efficiency must be at least 1 J/TH')
     .max(200, 'Hardware efficiency unreasonably high (>200 J/TH)')
     .describe('Hardware efficiency in joules per terahash'),
+  hashrate_ths: z
+    .number()
+    .positive('Hashrate must be positive')
+    .default(100)
+    .describe('Mining hashrate in TH/s (default: 100 TH/s)'),
   include_historical: z
     .boolean()
     .default(false)
@@ -94,6 +99,12 @@ export class ProfitabilityDeepDiveTool {
           'Hardware efficiency in joules per terahash (e.g., Antminer S19 Pro: ~29.5 J/TH, S21: ~17.5 J/TH)',
         minimum: 1,
         maximum: 200,
+      },
+      hashrate_ths: {
+        type: 'number',
+        description: 'Mining hashrate in TH/s (default: 100 TH/s)',
+        minimum: 0.001,
+        default: 100,
       },
       include_historical: {
         type: 'boolean',
@@ -167,8 +178,14 @@ export class ProfitabilityDeepDiveTool {
       hardware_efficiency_jth: input.hardware_efficiency_jth,
     };
 
+    // Calculate power consumption from hashrate and efficiency
+    // power_watts = hashrate_ths * efficiency_jth (J/TH * TH/s = W)
+    const consumption_watts = input.hashrate_ths * input.hardware_efficiency_jth;
+
     const costToMineParams: CostToMineQueryParams = {
-      electricity_cost_kwh: input.electricity_cost_kwh,
+      hashrate_ths: input.hashrate_ths,
+      consumption_watts: consumption_watts,
+      electricity_price_per_kwh: input.electricity_cost_kwh,
     };
 
     // Fetch all endpoints in parallel
@@ -339,9 +356,10 @@ export class ProfitabilityDeepDiveTool {
 
     // Add cost-to-mine data if available
     if (costToMine.success && costToMine.data) {
-      sections.push(`\n### Cost to Mine 1 BTC: $${this.formatCurrency(costToMine.data.cost_usd)}`);
+      const costToMineBtc = costToMine.data.result.fiat_cost;
+      sections.push(`\n### Cost to Mine 1 BTC: $${this.formatCurrency(costToMineBtc)}`);
       sections.push(
-        `- **Status:** ${profitability.btc_price_usd > costToMine.data.cost_usd ? '✅ Profitable to mine' : '❌ Cheaper to buy BTC directly'}`
+        `- **Status:** ${profitability.btc_price_usd > costToMineBtc ? '✅ Profitable to mine' : '❌ Cheaper to buy BTC directly'}`
       );
     }
 
@@ -450,7 +468,7 @@ export class ProfitabilityDeepDiveTool {
 
       if (costToMine.success && costToMine.data) {
         sections.push(
-          `- Consider buying BTC directly - cheaper than mining at current cost of $${this.formatCurrency(costToMine.data.cost_usd)} per BTC.`
+          `- Consider buying BTC directly - cheaper than mining at current cost of $${this.formatCurrency(costToMine.data.result.fiat_cost)} per BTC.`
         );
       }
     }

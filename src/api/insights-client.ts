@@ -613,15 +613,19 @@ export class InsightsApiClient {
    * Endpoint: GET /v2.0/cost-to-mine
    * Cache TTL: 10 minutes (recommended)
    *
-   * @param params - Optional electricity cost parameter
-   * @returns Cost to mine data
+   * Required parameters: hashrate_ths, consumption_watts, electricity_price_per_kwh
+   *
+   * @param params - Hardware specs and electricity cost
+   * @returns Cost to mine data with profitability analysis
    * @throws {NetworkError} If network request fails
    * @throws {InsightsApiError} If API returns error status
+   *
+   * @see https://academy.braiins.com/en/mining-insights/public-api/#cost-to-mine
    */
-  async getCostToMine(params?: CostToMineQueryParams): Promise<BraiinsInsightsCostToMine> {
+  async getCostToMine(params: CostToMineQueryParams): Promise<BraiinsInsightsCostToMine> {
     return this.get<BraiinsInsightsCostToMine>(
       '/v2.0/cost-to-mine',
-      params as Record<string, string | number>
+      params as unknown as Record<string, string | number>
     );
   }
 

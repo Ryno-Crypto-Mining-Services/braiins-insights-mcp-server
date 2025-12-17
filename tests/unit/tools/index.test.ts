@@ -272,13 +272,21 @@ describe('MCP Tool Registry', () => {
       expect(props).toContain('limit');
     });
 
-    it('braiins_cost_to_mine should have optional electricity parameter', () => {
+    it('braiins_cost_to_mine should have required electricity_price_per_kwh parameter', () => {
       const tools = getAllTools(mockApiClient);
       const costTool = tools.find((t) => t.name === 'braiins_cost_to_mine');
 
       expect(costTool).toBeDefined();
       const props = Object.keys(costTool!.inputSchema.properties);
-      expect(props).toContain('electricity_cost_kwh');
+      expect(props).toContain('electricity_price_per_kwh');
+      // Verify the three required parameters exist
+      expect(props).toContain('hashrate_ths');
+      expect(props).toContain('consumption_watts');
+      expect(costTool!.inputSchema.required).toEqual([
+        'hashrate_ths',
+        'consumption_watts',
+        'electricity_price_per_kwh',
+      ]);
     });
   });
 

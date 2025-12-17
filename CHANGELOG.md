@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.3] - 2025-12-17
+
+### Fixed
+
+- **Cost-to-Mine API Integration**: Fixed 400 Bad Request error when calling the cost-to-mine endpoint
+  - Updated `CostToMineQueryParams` to use correct API parameter names (`electricity_price_per_kwh` instead of `electricity_cost_kwh`)
+  - Added required parameters `hashrate_ths` and `consumption_watts` to match Braiins API v2.0 specification
+  - Updated `BraiinsInsightsCostToMine` response type to match actual API response structure with `payload` and `result` objects
+
+- **Tool Input Schema**: Updated `braiins_cost_to_mine` tool to require the three mandatory parameters:
+  - `hashrate_ths`: Mining hardware hashrate in TH/s
+  - `consumption_watts`: Power consumption in watts
+  - `electricity_price_per_kwh`: Electricity cost in USD/kWh
+
+- **Profitability Deep Dive Composite Tool**: Updated to correctly calculate and pass required parameters to cost-to-mine API
+  - Now calculates `consumption_watts` from `hashrate_ths * hardware_efficiency_jth`
+  - Uses correct parameter name `electricity_price_per_kwh`
+
+### Changed
+
+- Improved cost-to-mine markdown output formatting with comprehensive break-even analysis
+- Added hardware efficiency display in J/TH to cost analysis output
+
+---
+
 ## [0.3.2] - 2025-12-17
 
 ### Fixed

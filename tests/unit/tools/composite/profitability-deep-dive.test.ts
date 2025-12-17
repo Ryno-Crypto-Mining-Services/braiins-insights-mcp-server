@@ -49,12 +49,69 @@ describe('ProfitabilityDeepDiveTool', () => {
     timestamp: '2025-12-14T10:30:00Z',
   };
 
-  const mockCostToMineData: BraiinsInsightsCostToMine = {
-    cost_usd: 42000,
-    electricity_cost_kwh: 0.05,
-    break_even_price_usd: 45000,
-    margin_percent: 56.5,
-  };
+  // Helper to create cost-to-mine response with new API format
+  const createCostToMineResponse = (
+    overrides: {
+      fiat_cost?: number;
+      fiat_margin?: number;
+      fiat_break_even_electricity_price?: number;
+    } = {}
+  ): BraiinsInsightsCostToMine => ({
+    payload: {
+      hashrate_ths: 100,
+      consumption_watts: 2500,
+      avg_tx_fees_coin: null,
+      price: null,
+      difficulty: null,
+      block_reward: null,
+      revenue_fees_rate: 0.02,
+      profit_fees_rate: 0.0,
+      income_tax_rate: 0.0,
+      yearly_difficulty_change_rate: 0.02,
+      yearly_price_change_rate: 0.0,
+      electricity_price_per_kwh: 0.05,
+      capex: null,
+      monthly_fixed_opex: 0.0,
+      period_resolution: '1m',
+      periods: 24,
+      timestamp: '2025-12-17T19:00:00.000000000',
+      estimate_future_rewards: true,
+      initial_hardware_value_fiat: 0.0,
+      initial_infrastructure_value_fiat: 0.0,
+      initial_fiat_holdings_fiat: 0.0,
+      initial_coin_holdings_coin: 0.0,
+      yearly_hardware_value_change_rate: 0.0,
+      yearly_infrastructure_value_change_rate: 0.0,
+      hodl_rate: 0.0,
+      hodl_on_revenue_instead: false,
+      discount_rate: 0.0,
+      loan_amount_fiat: 0.0,
+      loan_interest_rate: 0.0,
+      loan_payback_periods: 0,
+      loan_to_value_ratio: 0.5,
+      halving_difficulty_change: 0.0,
+      periods_to_halving: null,
+    },
+    result: {
+      coin_mined_daily: 0.00004174,
+      difficulty: 148195306640204.7,
+      fiat_break_even_electricity_price: overrides.fiat_break_even_electricity_price ?? 0.12,
+      fiat_cost: overrides.fiat_cost ?? 42000,
+      fiat_margin: overrides.fiat_margin ?? 54500, // profitable
+      fiat_profit_daily: 2.27,
+      hardware_efficiency_j_th: 25.0,
+      fiat_cost_line: [0.0, 17249.94, 34499.87],
+      fiat_electricity_prices: [0.0, 0.01, 0.02],
+      fiat_profit_area: [85877.0, 68627.06, 51377.13],
+      price: [96500.0, 96500.0, 96500.0],
+      marginal_cost_to_mine_fiat: [42000, 42100, 42200],
+      marginal_electricity_breakeven_fiat: [0.12, 0.12, 0.12],
+      total_cost_to_mine_fiat: [42000, 42100, 42200],
+      total_electricity_breakeven_fiat: [0.12, 0.12, 0.12],
+    },
+  });
+
+  const mockCostToMineData = createCostToMineResponse();
 
   const mockPriceStatsData: BraiinsInsightsPriceStats = {
     price: 96500,
@@ -533,7 +590,7 @@ describe('ProfitabilityDeepDiveTool', () => {
       });
     });
 
-    it('should call getCostToMine with electricity cost', async () => {
+    it('should call getCostToMine with correct parameters', async () => {
       mockClient.getProfitabilityCalculator.mockResolvedValue(mockProfitabilityData);
       mockClient.getCostToMine.mockResolvedValue(mockCostToMineData);
 
@@ -544,8 +601,13 @@ describe('ProfitabilityDeepDiveTool', () => {
 
       await tool.execute(input);
 
+      // Cost-to-mine now requires hashrate_ths, consumption_watts, and electricity_price_per_kwh
+      // Tool calculates consumption_watts from hashrate_ths * hardware_efficiency_jth
+      // Default hashrate_ths is 100, so consumption = 100 * 29.5 = 2950 watts
       expect(mockClient.getCostToMine).toHaveBeenCalledWith({
-        electricity_cost_kwh: 0.08,
+        hashrate_ths: 100,
+        consumption_watts: 2950,
+        electricity_price_per_kwh: 0.08,
       });
     });
 
