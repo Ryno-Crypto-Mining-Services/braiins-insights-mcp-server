@@ -47,8 +47,8 @@ Connect your AI coding assistant (Claude Desktop, Cursor, GitHub Copilot) to rea
 ## 🛠️ Installation
 
 ### Option 1: NPM Package (Recommended)
-```
-npm install -g braiins-insights-mcp-server
+```bash
+npm install -g @ryno-crypto/braiins-insights-mcp-server
 ```
 
 ### Option 2: From Source
@@ -73,12 +73,12 @@ docker run -it --rm rynocrypto/braiins-insights-mcp
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
-```
+```json
 {
   "mcpServers": {
     "braiins-insights": {
       "command": "npx",
-      "args": ["-y", "braiins-insights-mcp-server"],
+      "args": ["-y", "@ryno-crypto/braiins-insights-mcp-server"],
       "env": {
         "INSIGHTS_CACHE_TTL": "300000",
         "INSIGHTS_RATE_LIMIT": "30"
