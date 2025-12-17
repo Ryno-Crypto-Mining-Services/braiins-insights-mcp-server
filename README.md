@@ -52,17 +52,37 @@ npm install -g @ryno-crypto/braiins-insights-mcp-server
 ```
 
 ### Option 2: From Source
-```
+```bash
 git clone https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server.git
 cd braiins-insights-mcp-server
 npm install
 npm run build
 ```
 
-### Option 3: Docker
+### Option 3: Docker (GitHub Container Registry)
+
+Pull the latest release from GitHub Container Registry:
+```bash
+docker pull ghcr.io/ryno-crypto-mining-services/braiins-insights-mcp-server:latest
 ```
-docker pull rynocrypto/braiins-insights-mcp:latest
-docker run -it --rm rynocrypto/braiins-insights-mcp
+
+Run interactively (for testing):
+```bash
+docker run -it --rm ghcr.io/ryno-crypto-mining-services/braiins-insights-mcp-server:latest
+```
+
+### Option 4: Build Docker Locally
+
+Clone and build the Docker image from source:
+```bash
+git clone https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server.git
+cd braiins-insights-mcp-server
+
+# Build the image
+docker build -t braiins-insights-mcp-server:local .
+
+# Run interactively (for testing)
+docker run -it --rm braiins-insights-mcp-server:local
 ```
 
 ---
@@ -73,16 +93,43 @@ docker run -it --rm rynocrypto/braiins-insights-mcp
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
+#### Option A: NPM Package (Recommended)
 ```json
 {
   "mcpServers": {
     "braiins-insights": {
       "command": "npx",
-      "args": ["-y", "@ryno-crypto/braiins-insights-mcp-server"],
-      "env": {
-        "INSIGHTS_CACHE_TTL": "300000",
-        "INSIGHTS_RATE_LIMIT": "30"
-      }
+      "args": ["-y", "@ryno-crypto/braiins-insights-mcp-server"]
+    }
+  }
+}
+```
+
+#### Option B: Docker (GitHub Container Registry)
+```json
+{
+  "mcpServers": {
+    "braiins-insights": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "ghcr.io/ryno-crypto-mining-services/braiins-insights-mcp-server:latest"
+      ]
+    }
+  }
+}
+```
+
+#### Option C: Local Docker Build
+```json
+{
+  "mcpServers": {
+    "braiins-insights": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "braiins-insights-mcp-server:local"
+      ]
     }
   }
 }
@@ -90,13 +137,45 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 
 ### Cursor IDE Setup
 
-Add to `.cursor/mcp_settings.json`:
-```
+Add to `.cursor/mcp.json` in your project root or `~/.cursor/mcp.json` for global configuration:
+
+#### Option A: NPM Package (Recommended)
+```json
 {
-  "servers": {
+  "mcpServers": {
     "braiins-insights": {
-      "command": "node",
-      "args": ["path/to/braiins-insights-mcp-server/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "@ryno-crypto/braiins-insights-mcp-server"]
+    }
+  }
+}
+```
+
+#### Option B: Docker (GitHub Container Registry)
+```json
+{
+  "mcpServers": {
+    "braiins-insights": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "ghcr.io/ryno-crypto-mining-services/braiins-insights-mcp-server:latest"
+      ]
+    }
+  }
+}
+```
+
+#### Option C: Local Docker Build
+```json
+{
+  "mcpServers": {
+    "braiins-insights": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "braiins-insights-mcp-server:local"
+      ]
     }
   }
 }
