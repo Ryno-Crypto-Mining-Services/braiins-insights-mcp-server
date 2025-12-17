@@ -42,12 +42,17 @@ const SAMPLE_HASHRATE_STATS: BraiinsInsightsHashrateStats = {
 };
 
 const SAMPLE_DIFFICULTY_STATS: BraiinsInsightsDifficultyStats = {
-  current_difficulty: 109780000000000000,
-  estimated_next_difficulty: 111000000000000000,
-  estimated_change_percent: 1.1,
-  blocks_until_adjustment: 1250,
-  estimated_adjustment_time: '2025-12-20T10:00:00Z',
-  last_adjustment_date: '2025-12-06T08:30:00Z',
+  difficulty: 109780000000000000,
+  block_epoch: 432,
+  epoch_block_time: 598,
+  estimated_adjustment: 0.011,
+  estimated_next_diff: 111000000000000000,
+  estimated_adjustment_date: '2025-12-20T10:00:00Z',
+  previous_adjustment: 0.0245,
+  year_difficulty_change: 0.52,
+  current_halving_epoch_total_difficulty_change: 0.78,
+  previous_halving_epoch_total_difficulty_change: 1.25,
+  average_difficulty_change_per_epoch: 0.032,
 };
 
 const SAMPLE_TRANSACTION_STATS: BraiinsInsightsTransactionStats = {

@@ -263,14 +263,13 @@ describe('MCP Tool Registry', () => {
       expect(profitTool!.inputSchema.required).toContain('hardware_efficiency_jth');
     });
 
-    it('braiins_blocks should have optional pagination parameters', () => {
+    it('braiins_blocks should have optional limit parameter', () => {
       const tools = getAllTools(mockApiClient);
       const blocksTool = tools.find((t) => t.name === 'braiins_blocks');
 
       expect(blocksTool).toBeDefined();
       const props = Object.keys(blocksTool!.inputSchema.properties);
-      expect(props).toContain('page');
-      expect(props).toContain('page_size');
+      expect(props).toContain('limit');
     });
 
     it('braiins_cost_to_mine should have optional electricity parameter', () => {

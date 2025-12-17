@@ -125,7 +125,7 @@ export class BlocksTool {
     const tableRows = blocks
       .map(
         (block) =>
-          `| ${block.height.toLocaleString()} | ${block.pool} | ${this.formatRelativeTime(block.timestamp)} | ${block.block_value_btc.toFixed(8)} BTC | $${block.block_value_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} |`
+          `| ${block.height.toLocaleString()} | ${block.pool || 'Unknown'} | ${this.formatRelativeTime(block.timestamp)} | ${block.block_value_btc.toFixed(8)} BTC | $${block.block_value_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} |`
       )
       .join('\n');
 

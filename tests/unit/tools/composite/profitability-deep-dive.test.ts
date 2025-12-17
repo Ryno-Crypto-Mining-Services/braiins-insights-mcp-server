@@ -57,10 +57,9 @@ describe('ProfitabilityDeepDiveTool', () => {
   };
 
   const mockPriceStatsData: BraiinsInsightsPriceStats = {
-    current_price_usd: 96500,
-    price_change_24h_percent: 3.2,
-    market_cap_usd: 1900000000000,
-    volume_24h_usd: 45000000000,
+    price: 96500,
+    percent_change_24h: 3.2,
+    timestamp: '2025-12-16T04:00:00Z',
   };
 
   const mockHistoricalData: BraiinsInsightsHashrateValue[] = [

@@ -16,53 +16,48 @@ const createMockApiClient = (): { getBlocks: jest.Mock } => ({
   getBlocks: jest.fn(),
 });
 
-// Sample valid response data
-const SAMPLE_BLOCKS_PAGE_1: BraiinsInsightsBlockData[] = [
+// Sample valid response data matching updated API structure
+const SAMPLE_BLOCKS: BraiinsInsightsBlockData[] = [
   {
     height: 875432,
-    hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
-    pool_name: 'Foundry USA',
+    pool: 'Foundry USA',
     timestamp: '2025-12-16T04:00:00Z',
-    transaction_count: 3245,
-    size_mb: 1.89,
+    block_value_btc: 3.247,
+    block_value_usd: 289163.45,
   },
   {
     height: 875431,
-    hash: '00000000000000000009876543210fedcba9876543210fedcba9876543210fed',
-    pool_name: 'AntPool',
+    pool: 'AntPool',
     timestamp: '2025-12-16T03:50:00Z',
-    transaction_count: 2987,
-    size_mb: 1.76,
+    block_value_btc: 3.198,
+    block_value_usd: 284812.2,
   },
   {
     height: 875430,
-    hash: '0000000000000000000abcdef1234567890abcdef1234567890abcdef123456',
-    pool_name: 'F2Pool',
+    pool: 'F2Pool',
     timestamp: '2025-12-16T03:40:00Z',
-    transaction_count: 3101,
-    size_mb: 1.82,
+    block_value_btc: 3.156,
+    block_value_usd: 281071.88,
   },
 ];
 
 const SAMPLE_BLOCKS_PAGE_2: BraiinsInsightsBlockData[] = [
   {
     height: 875429,
-    hash: '0000000000000000000fedcba9876543210fedcba9876543210fedcba987654',
-    pool_name: 'Braiins Pool',
+    pool: 'Braiins Pool',
     timestamp: '2025-12-16T03:30:00Z',
-    transaction_count: 3456,
-    size_mb: 1.95,
+    block_value_btc: 3.321,
+    block_value_usd: 295753.89,
   },
 ];
 
 const SAMPLE_BLOCKS_UNKNOWN_POOL: BraiinsInsightsBlockData[] = [
   {
     height: 875428,
-    hash: '00000000000000000001111111111111111111111111111111111111111111',
-    pool_name: null,
+    pool: '',
     timestamp: '2025-12-16T03:20:00Z',
-    transaction_count: 2543,
-    size_mb: 1.45,
+    block_value_btc: 3.145,
+    block_value_usd: 280091.45,
   },
 ];
 
@@ -81,47 +76,31 @@ describe('BlocksTool', () => {
     });
 
     it('should have descriptive description', () => {
-      expect(tool.description).toContain('blocks');
-      expect(tool.description).toContain('pagination');
+      expect(tool.description).toContain('block');
       expect(tool.description.length).toBeGreaterThan(20);
     });
 
-    it('should have valid input schema', () => {
+    it('should have valid input schema with limit parameter', () => {
       expect(tool.inputSchema.type).toBe('object');
-      expect(tool.inputSchema.properties).toHaveProperty('page');
-      expect(tool.inputSchema.properties).toHaveProperty('page_size');
-      expect(tool.inputSchema.properties).toHaveProperty('start_date');
-      expect(tool.inputSchema.properties).toHaveProperty('end_date');
+      expect(tool.inputSchema.properties).toHaveProperty('limit');
       expect(tool.inputSchema.required).toEqual([]);
     });
 
-    it('should define pagination parameters correctly', () => {
-      expect(tool.inputSchema.properties.page.type).toBe('number');
-      expect(tool.inputSchema.properties.page.default).toBe(1);
-      expect(tool.inputSchema.properties.page.minimum).toBe(1);
-
-      expect(tool.inputSchema.properties.page_size.type).toBe('number');
-      expect(tool.inputSchema.properties.page_size.default).toBe(10);
-      expect(tool.inputSchema.properties.page_size.minimum).toBe(1);
-      expect(tool.inputSchema.properties.page_size.maximum).toBe(100);
-    });
-
-    it('should define date filter parameters with patterns', () => {
-      expect(tool.inputSchema.properties.start_date.pattern).toBe('^\\d{4}-\\d{2}-\\d{2}$');
-      expect(tool.inputSchema.properties.end_date.pattern).toBe('^\\d{4}-\\d{2}-\\d{2}$');
+    it('should define limit parameter correctly', () => {
+      expect(tool.inputSchema.properties.limit.type).toBe('number');
+      expect(tool.inputSchema.properties.limit.default).toBe(10);
+      expect(tool.inputSchema.properties.limit.minimum).toBe(1);
+      expect(tool.inputSchema.properties.limit.maximum).toBe(100);
     });
   });
 
   describe('execute - happy path', () => {
     it('should fetch and format blocks successfully with default parameters', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
+      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS);
 
       const result = await tool.execute({});
 
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({
-        page: 1,
-        page_size: 10,
-      });
+      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ limit: 10 });
       expect(result.isError).toBe(false);
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
@@ -132,178 +111,57 @@ describe('BlocksTool', () => {
       expect(markdown).toContain('875,432'); // Height is formatted with thousands separator
     });
 
-    it('should apply custom pagination parameters', async () => {
+    it('should apply custom limit parameter', async () => {
       mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_2);
 
-      const result = await tool.execute({ page: 2, page_size: 20 });
+      const result = await tool.execute({ limit: 20 });
 
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({
-        page: 2,
-        page_size: 20,
-      });
+      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ limit: 20 });
       expect(result.isError).toBe(false);
     });
 
-    it('should include filter information in output', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
-
-      const result = await tool.execute({ page: 3, page_size: 5 });
-      const markdown = result.content[0].text;
-
-      expect(markdown).toContain('Filters Applied:');
-      expect(markdown).toContain('Page: 3');
-      expect(markdown).toContain('Page Size: 5');
-    });
-
-    it('should display block summary statistics', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
+    it('should include block value in BTC and USD', async () => {
+      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS);
 
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      expect(markdown).toContain('Summary:');
-      expect(markdown).toContain('Total Blocks Displayed: 3');
-      expect(markdown).toContain('Average Block Size:');
-      expect(markdown).toContain('Average Transactions/Block:');
+      expect(markdown).toContain('Value (BTC)');
+      expect(markdown).toContain('3.247'); // BTC value
     });
   });
 
   describe('execute - pagination', () => {
-    it('should handle minimum page size (1)', async () => {
-      mockApiClient.getBlocks.mockResolvedValue([SAMPLE_BLOCKS_PAGE_1[0]]);
+    it('should handle minimum limit (1)', async () => {
+      mockApiClient.getBlocks.mockResolvedValue([SAMPLE_BLOCKS[0]]);
 
-      const result = await tool.execute({ page: 1, page_size: 1 });
+      const result = await tool.execute({ limit: 1 });
 
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({
-        page: 1,
-        page_size: 1,
-      });
+      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ limit: 1 });
       expect(result.isError).toBe(false);
     });
 
-    it('should handle maximum page size (100)', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
+    it('should handle maximum limit (100)', async () => {
+      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS);
 
-      const result = await tool.execute({ page: 1, page_size: 100 });
+      const result = await tool.execute({ limit: 100 });
 
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({
-        page: 1,
-        page_size: 100,
-      });
+      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ limit: 100 });
       expect(result.isError).toBe(false);
     });
 
-    it('should reject page size exceeding 100', async () => {
-      const result = await tool.execute({ page: 1, page_size: 101 });
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Validation Error');
-      expect(result.content[0].text).toContain('Page size cannot exceed 100');
-    });
-
-    it('should reject page size less than 1', async () => {
-      const result = await tool.execute({ page: 1, page_size: 0 });
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Validation Error');
-      expect(result.content[0].text).toContain('Page size must be at least 1');
-    });
-
-    it('should reject page number less than 1', async () => {
-      const result = await tool.execute({ page: 0, page_size: 10 });
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Validation Error');
-      expect(result.content[0].text).toContain('Page number must be at least 1');
-    });
-  });
-
-  describe('execute - date filtering', () => {
-    it('should apply start_date filter', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
-
-      const result = await tool.execute({
-        page: 1,
-        page_size: 10,
-        start_date: '2025-12-01',
-      });
-
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({
-        page: 1,
-        page_size: 10,
-        start_date: '2025-12-01',
-      });
-      expect(result.isError).toBe(false);
-
-      const markdown = result.content[0].text;
-      expect(markdown).toContain('Start Date: 2025-12-01');
-    });
-
-    it('should apply end_date filter', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
-
-      const result = await tool.execute({
-        page: 1,
-        page_size: 10,
-        end_date: '2025-12-16',
-      });
-
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({
-        page: 1,
-        page_size: 10,
-        end_date: '2025-12-16',
-      });
-      expect(result.isError).toBe(false);
-
-      const markdown = result.content[0].text;
-      expect(markdown).toContain('End Date: 2025-12-16');
-    });
-
-    it('should apply both start_date and end_date filters', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
-
-      const result = await tool.execute({
-        start_date: '2025-12-01',
-        end_date: '2025-12-16',
-      });
-
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({
-        page: 1,
-        page_size: 10,
-        start_date: '2025-12-01',
-        end_date: '2025-12-16',
-      });
-      expect(result.isError).toBe(false);
-    });
-
-    it('should reject invalid date format (start_date)', async () => {
-      const result = await tool.execute({
-        start_date: '2025/12/01', // Wrong format (should be YYYY-MM-DD)
-      });
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Validation Error');
-      expect(result.content[0].text).toContain('YYYY-MM-DD format');
-    });
-
-    it('should reject invalid date format (end_date)', async () => {
-      const result = await tool.execute({
-        end_date: '12-16-2025', // Wrong format (should be YYYY-MM-DD)
-      });
+    it('should reject limit exceeding 100', async () => {
+      const result = await tool.execute({ limit: 101 });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation Error');
     });
 
-    it('should reject start_date after end_date', async () => {
-      const result = await tool.execute({
-        start_date: '2025-12-16',
-        end_date: '2025-12-01',
-      });
+    it('should reject limit less than 1', async () => {
+      const result = await tool.execute({ limit: 0 });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation Error');
-      expect(result.content[0].text).toContain('start_date must be before or equal to end_date');
     });
   });
 
@@ -311,80 +169,21 @@ describe('BlocksTool', () => {
     it('should handle empty result set', async () => {
       mockApiClient.getBlocks.mockResolvedValue([]);
 
-      const result = await tool.execute({ page: 999 });
+      const result = await tool.execute({ limit: 50 });
 
       expect(result.isError).toBe(false);
       const markdown = result.content[0].text;
       expect(markdown).toContain('No blocks found');
-      expect(markdown).toContain('Page: 999');
     });
 
-    it('should handle empty result set with date filters', async () => {
-      mockApiClient.getBlocks.mockResolvedValue([]);
-
-      const result = await tool.execute({
-        start_date: '2020-01-01',
-        end_date: '2020-01-02',
-      });
-
-      expect(result.isError).toBe(false);
-      const markdown = result.content[0].text;
-      expect(markdown).toContain('No blocks found');
-      expect(markdown).toContain('between 2020-01-01 and 2020-01-02');
-    });
-
-    it('should handle blocks with null pool_name', async () => {
+    it('should handle blocks with empty pool name', async () => {
       mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_UNKNOWN_POOL);
 
       const result = await tool.execute({});
 
       expect(result.isError).toBe(false);
       const markdown = result.content[0].text;
-      expect(markdown).toContain('Unknown'); // Should show "Unknown" for null pool_name
-    });
-
-    it('should handle blocks with short hash', async () => {
-      const shortHashBlock: BraiinsInsightsBlockData[] = [
-        {
-          height: 875427,
-          hash: 'short',
-          pool_name: 'Test Pool',
-          timestamp: '2025-12-16T03:10:00Z',
-          transaction_count: 2000,
-          size_mb: 1.5,
-        },
-      ];
-      mockApiClient.getBlocks.mockResolvedValue(shortHashBlock);
-
-      const result = await tool.execute({});
-
-      expect(result.isError).toBe(false);
-      const markdown = result.content[0].text;
-      expect(markdown).toContain('short'); // Short hash should be displayed as-is
-    });
-
-    it('should format large block hashes correctly', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
-
-      const result = await tool.execute({});
-
-      expect(result.isError).toBe(false);
-      const markdown = result.content[0].text;
-      // Should contain shortened hash format (first 10 + ... + last 6 characters)
-      expect(markdown).toMatch(/`0{10,}\.\.\.[a-f0-9]{6}`/);
-    });
-
-    it('should calculate correct average statistics', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
-
-      const result = await tool.execute({});
-      const markdown = result.content[0].text;
-
-      // Average size: (1.89 + 1.76 + 1.82) / 3 = 1.82
-      expect(markdown).toContain('Average Block Size: 1.82 MB');
-
-      // Average tx count: (3245 + 2987 + 3101) / 3 = 3111
-      expect(markdown).toContain('Average Transactions/Block: 3111');
+      expect(markdown).toContain('Unknown'); // Should show "Unknown" for empty pool
     });
   });
 
@@ -449,15 +248,13 @@ describe('BlocksTool', () => {
 
   describe('formatRelativeTime branches', () => {
     it('should show "Just now" for blocks mined less than 1 minute ago', async () => {
-      // Create a block with timestamp less than 1 minute ago
       const justNowBlock: BraiinsInsightsBlockData[] = [
         {
           height: 875433,
-          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
-          pool_name: 'Foundry USA',
-          timestamp: new Date().toISOString(), // Current time
-          transaction_count: 3000,
-          size_mb: 1.8,
+          pool: 'Foundry USA',
+          timestamp: new Date().toISOString(),
+          block_value_btc: 3.15,
+          block_value_usd: 280500.0,
         },
       ];
       mockApiClient.getBlocks.mockResolvedValue(justNowBlock);
@@ -469,18 +266,16 @@ describe('BlocksTool', () => {
     });
 
     it('should show minutes ago for blocks mined 1-59 minutes ago', async () => {
-      // Create a block with timestamp 30 minutes ago
       const thirtyMinsAgo = new Date();
       thirtyMinsAgo.setMinutes(thirtyMinsAgo.getMinutes() - 30);
 
       const minutesAgoBlock: BraiinsInsightsBlockData[] = [
         {
           height: 875433,
-          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
-          pool_name: 'AntPool',
+          pool: 'AntPool',
           timestamp: thirtyMinsAgo.toISOString(),
-          transaction_count: 2800,
-          size_mb: 1.7,
+          block_value_btc: 3.2,
+          block_value_usd: 284952.0,
         },
       ];
       mockApiClient.getBlocks.mockResolvedValue(minutesAgoBlock);
@@ -492,18 +287,16 @@ describe('BlocksTool', () => {
     });
 
     it('should show days ago for blocks mined more than 24 hours ago', async () => {
-      // Create a block with timestamp 3 days ago
       const threeDaysAgo = new Date();
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
       const daysAgoBlock: BraiinsInsightsBlockData[] = [
         {
           height: 875400,
-          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
-          pool_name: 'F2Pool',
+          pool: 'F2Pool',
           timestamp: threeDaysAgo.toISOString(),
-          transaction_count: 3100,
-          size_mb: 1.85,
+          block_value_btc: 3.18,
+          block_value_usd: 283169.0,
         },
       ];
       mockApiClient.getBlocks.mockResolvedValue(daysAgoBlock);
@@ -515,18 +308,16 @@ describe('BlocksTool', () => {
     });
 
     it('should show hours ago for blocks mined 1-23 hours ago', async () => {
-      // Create a block with timestamp 5 hours ago
       const fiveHoursAgo = new Date();
       fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5);
 
       const hoursAgoBlock: BraiinsInsightsBlockData[] = [
         {
           height: 875433,
-          hash: '00000000000000000001234567890abcdef1234567890abcdef1234567890abc',
-          pool_name: 'Braiins Pool',
+          pool: 'Braiins Pool',
           timestamp: fiveHoursAgo.toISOString(),
-          transaction_count: 2500,
-          size_mb: 1.6,
+          block_value_btc: 3.22,
+          block_value_usd: 286732.0,
         },
       ];
       mockApiClient.getBlocks.mockResolvedValue(hoursAgoBlock);
@@ -541,22 +332,18 @@ describe('BlocksTool', () => {
 
   describe('markdown formatting', () => {
     it('should format block table correctly', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
+      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS);
 
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      expect(markdown).toContain(
-        '| Height  | Pool        | Timestamp    | Transactions | Size    | Hash (short) |'
-      );
-      expect(markdown).toContain(
-        '|---------|-------------|--------------|--------------|---------|--------------|'
-      );
-      expect(markdown).toMatch(/\| 875,432 \|/); // Numbers should be formatted with commas
+      expect(markdown).toContain('| Height');
+      expect(markdown).toContain('| Pool');
+      expect(markdown).toContain('Value (BTC)');
     });
 
     it('should include Braiins Insights link in footer', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
+      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS);
 
       const result = await tool.execute({});
       const markdown = result.content[0].text;
@@ -566,24 +353,12 @@ describe('BlocksTool', () => {
     });
 
     it('should include timestamp in footer', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
+      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS);
 
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      expect(markdown).toContain('Timestamp:');
       expect(markdown).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // ISO format
-    });
-
-    it('should format transaction counts with thousands separator', async () => {
-      mockApiClient.getBlocks.mockResolvedValue(SAMPLE_BLOCKS_PAGE_1);
-
-      const result = await tool.execute({});
-      const markdown = result.content[0].text;
-
-      expect(markdown).toContain('3,245'); // Transaction count formatted
-      expect(markdown).toContain('2,987');
-      expect(markdown).toContain('3,101');
     });
   });
 });

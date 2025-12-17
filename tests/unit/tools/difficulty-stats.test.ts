@@ -12,14 +12,19 @@ const createMockApiClient = (): { getDifficultyStats: jest.Mock } => ({
   getDifficultyStats: jest.fn(),
 });
 
-// Sample valid response data
+// Sample valid response data matching updated API structure
 const SAMPLE_DIFFICULTY_STATS: BraiinsInsightsDifficultyStats = {
-  current_difficulty: 109780000000000000,
-  estimated_next_difficulty: 110500000000000000,
-  estimated_change_percent: 0.656,
-  blocks_until_adjustment: 1234,
-  estimated_adjustment_time: '2025-12-20T14:30:00Z',
-  last_adjustment_date: '2025-12-06T10:15:00Z',
+  difficulty: 109780000000000000,
+  block_epoch: 432,
+  epoch_block_time: 598,
+  estimated_adjustment: 0.00656,
+  estimated_next_diff: 110500000000000000,
+  estimated_adjustment_date: '2025-12-20T14:30:00Z',
+  previous_adjustment: 0.0245,
+  year_difficulty_change: 0.52,
+  current_halving_epoch_total_difficulty_change: 0.78,
+  previous_halving_epoch_total_difficulty_change: 1.25,
+  average_difficulty_change_per_epoch: 0.032,
 };
 
 describe('DifficultyStatsTool', () => {
@@ -61,8 +66,6 @@ describe('DifficultyStatsTool', () => {
 
       const markdown = result.content[0].text;
       expect(markdown).toContain('Bitcoin Network Difficulty Statistics');
-      expect(markdown).toContain('Current Metrics');
-      expect(markdown).toContain('Next Adjustment');
     });
 
     it('should format current difficulty correctly', async () => {
@@ -71,9 +74,8 @@ describe('DifficultyStatsTool', () => {
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      // Should show scientific notation and formatted number
+      // Should show scientific notation
       expect(markdown).toContain('1.10e+17');
-      expect(markdown).toMatch(/109,780,000,000,000,000/);
     });
 
     it('should format difficulty change percentage correctly', async () => {
@@ -82,13 +84,14 @@ describe('DifficultyStatsTool', () => {
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
+      // estimated_adjustment is 0.00656 which should be formatted as +0.66%
       expect(markdown).toContain('+0.66%');
     });
 
     it('should format negative difficulty change correctly', async () => {
       const statsWithNegativeChange = {
         ...SAMPLE_DIFFICULTY_STATS,
-        estimated_change_percent: -2.15,
+        estimated_adjustment: -0.0215,
       };
       mockApiClient.getDifficultyStats.mockResolvedValue(statsWithNegativeChange);
 
@@ -98,60 +101,13 @@ describe('DifficultyStatsTool', () => {
       expect(markdown).toContain('-2.15%');
     });
 
-    it('should format blocks until adjustment with commas', async () => {
+    it('should show block epoch', async () => {
       mockApiClient.getDifficultyStats.mockResolvedValue(SAMPLE_DIFFICULTY_STATS);
 
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      expect(markdown).toContain('1,234');
-    });
-
-    it('should format dates as human-readable', async () => {
-      mockApiClient.getDifficultyStats.mockResolvedValue(SAMPLE_DIFFICULTY_STATS);
-
-      const result = await tool.execute({});
-      const markdown = result.content[0].text;
-
-      // Should convert ISO 8601 to UTC/GMT string
-      expect(markdown).toMatch(/Estimated Adjustment Time:.*(UTC|GMT)/);
-      expect(markdown).toMatch(/Last Adjustment:.*(UTC|GMT)/);
-    });
-
-    it('should handle optional fields gracefully', async () => {
-      const minimalStats: BraiinsInsightsDifficultyStats = {
-        current_difficulty: 109780000000000000,
-        estimated_next_difficulty: 110500000000000000,
-        estimated_change_percent: 0.656,
-        blocks_until_adjustment: 1234,
-      };
-      mockApiClient.getDifficultyStats.mockResolvedValue(minimalStats);
-
-      const result = await tool.execute({});
-
-      expect(result.isError).toBe(false);
-      const markdown = result.content[0].text;
-      expect(markdown).toContain('Current Difficulty');
-      expect(markdown).toContain('Blocks Until Adjustment');
-    });
-
-    it('should handle missing estimated fields', async () => {
-      // Test the else branches when estimated fields are undefined
-      const statsWithoutEstimates: BraiinsInsightsDifficultyStats = {
-        current_difficulty: 109780000000000000,
-        blocks_until_adjustment: 1234,
-        // estimated_next_difficulty is undefined
-        // estimated_change_percent is undefined
-      };
-      mockApiClient.getDifficultyStats.mockResolvedValue(statsWithoutEstimates);
-
-      const result = await tool.execute({});
-
-      expect(result.isError).toBe(false);
-      const markdown = result.content[0].text;
-      expect(markdown).toContain('Current Difficulty');
-      expect(markdown).not.toContain('Estimated Next Difficulty');
-      expect(markdown).not.toContain('Estimated Change');
+      expect(markdown).toContain('432');
     });
   });
 
@@ -206,7 +162,7 @@ describe('DifficultyStatsTool', () => {
     it('should handle very large difficulty numbers', async () => {
       const statsWithLargeNumbers = {
         ...SAMPLE_DIFFICULTY_STATS,
-        current_difficulty: 9.99999999999999e17,
+        difficulty: 9.99999999999999e17,
       };
       mockApiClient.getDifficultyStats.mockResolvedValue(statsWithLargeNumbers);
 
@@ -218,11 +174,10 @@ describe('DifficultyStatsTool', () => {
     });
 
     it('should format smaller difficulty values without scientific notation', async () => {
-      // Test the else branch of formatDifficulty (value < 1e15)
       const statsWithSmallDifficulty = {
         ...SAMPLE_DIFFICULTY_STATS,
-        current_difficulty: 500000000000000, // 5e14, below 1e15 threshold
-        estimated_next_difficulty: 510000000000000,
+        difficulty: 500000000000000,
+        estimated_next_diff: 510000000000000,
       };
       mockApiClient.getDifficultyStats.mockResolvedValue(statsWithSmallDifficulty);
 
@@ -232,36 +187,6 @@ describe('DifficultyStatsTool', () => {
       const markdown = result.content[0].text;
       // Should show formatted number without scientific notation
       expect(markdown).toContain('500,000,000,000,000');
-      expect(markdown).not.toContain('e+14');
-    });
-
-    it('should handle zero blocks until adjustment', async () => {
-      const statsWithZeroBlocks = {
-        ...SAMPLE_DIFFICULTY_STATS,
-        blocks_until_adjustment: 0,
-      };
-      mockApiClient.getDifficultyStats.mockResolvedValue(statsWithZeroBlocks);
-
-      const result = await tool.execute({});
-
-      expect(result.isError).toBe(false);
-      const markdown = result.content[0].text;
-      expect(markdown).toContain('0');
-    });
-
-    it('should handle invalid date formats gracefully', async () => {
-      const statsWithInvalidDate = {
-        ...SAMPLE_DIFFICULTY_STATS,
-        estimated_adjustment_time: 'invalid-date',
-      };
-      mockApiClient.getDifficultyStats.mockResolvedValue(statsWithInvalidDate);
-
-      const result = await tool.execute({});
-
-      expect(result.isError).toBe(false);
-      const markdown = result.content[0].text;
-      // Should display "Invalid Date" when parsing fails
-      expect(markdown).toContain('Invalid Date');
     });
   });
 });

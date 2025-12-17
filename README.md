@@ -195,18 +195,18 @@ Tool: braiins_hashrate_stats
 Response:
 # 📊 Bitcoin Network Hashrate Statistics
 - Hashrate: 756.42 EH/s
-- 24h Average: 751.18 EH/s
-- 7d Average: 748.91 EH/s
+- Estimated Hashrate: 751.18 EH/s
+- 30-Day Average: 748.91 EH/s
 ```
 
 **Q:** "Show me the last 10 blocks"
 ```
-Tool: braiins_blocks (page: 1, page_size: 10)
+Tool: braiins_blocks (limit: 10)
 Response:
-| Height  | Pool        | Time     | Transactions | Size    |
-|---------|-------------|----------|--------------|---------|
-| 872,450 | Braiins     | 2m ago   | 3,247        | 1.42 MB |
-| 872,449 | Foundry USA | 12m ago  | 2,891        | 1.38 MB |
+| Height  | Pool        | Time     | Value (BTC) |
+|---------|-------------|----------|-------------|
+| 872,450 | Braiins     | 2m ago   | 3.247       |
+| 872,449 | Foundry USA | 12m ago  | 3.189       |
 ...
 ```
 
@@ -235,171 +235,99 @@ Response:
 
 ## 🧰 Available MCP Tools
 
-Currently **5 tools implemented** (17 planned). See [TOOL_CATALOG.md](./TOOL_CATALOG.md) for complete reference.
+**17 tools implemented** across 4 categories. See [TOOL_CATALOG.md](./TOOL_CATALOG.md) for complete reference.
 
-### Simple Stats Tools (No Parameters Required)
+### Simple Stats Tools (7 tools - No Parameters Required)
 
-#### `braiins_hashrate_stats` ✅ IMPLEMENTED
-Get current Bitcoin network hashrate statistics including 30-day averages, hash price, transaction fees, and year-over-year trends.
+| Tool | Description |
+|------|-------------|
+| `braiins_hashrate_stats` | Network hashrate, 30-day average, hash price, transaction fees, YoY trends |
+| `braiins_difficulty_stats` | Current difficulty, next adjustment prediction, epoch timing |
+| `braiins_price_stats` | Current BTC price with 24h change percentage |
+| `braiins_pool_stats` | Mining pool distribution by hashrate |
+| `braiins_transaction_stats` | Mempool size, average fees, confirmation times |
+| `braiins_rss_feed_data` | Latest Braiins blog posts and announcements |
+| `braiins_halvings` | Halving countdown, block rewards, historical events |
 
-**Example Query:**
+### Parameterized Tools (3 tools - With Input Parameters)
+
+| Tool | Parameters | Description |
+|------|------------|-------------|
+| `braiins_blocks` | `limit` (1-100) | Recent blocks with pool, timestamp, value |
+| `braiins_profitability_calculator` | `electricity_cost_kwh`, `hardware_efficiency_jth`, `hardware_cost_usd?` | Mining profitability with ROI analysis |
+| `braiins_cost_to_mine` | `electricity_cost_kwh?` | Cost to mine 1 BTC at given electricity rate |
+
+### Historical Data Tools (4 tools - Time-Series Data)
+
+| Tool | Description |
+|------|-------------|
+| `braiins_daily_revenue_history` | 30-day mining revenue trend |
+| `braiins_hashrate_and_difficulty_history` | Historical network hashrate and difficulty |
+| `braiins_hashrate_value_history` | Hash price correlation over time |
+| `braiins_transaction_fees_history` | Fee market evolution |
+
+### Composite Tools (3 tools - Multi-Endpoint Aggregators)
+
+| Tool | Combines | Description |
+|------|----------|-------------|
+| `braiins_mining_overview` | Hashrate + Difficulty + Price + Blocks | 30-second ecosystem snapshot |
+| `braiins_profitability_deep_dive` | Calculator + Cost-to-mine + Price + History | Comprehensive profitability analysis |
+| `braiins_network_health_monitor` | Hashrate history + Difficulty + Blocks | Network health score with anomaly detection |
+
+### Detailed Tool Examples
+
+#### `braiins_hashrate_stats`
+Get current Bitcoin network hashrate statistics.
+
 ```
 "What's the current Bitcoin network hashrate?"
 ```
-
-**Response Format:**
-- Current hashrate (EH/s) and estimated hashrate
-- 30-day average hashrate
-- Hash price and hash value (USD/TH/day)
-- Transaction fee metrics (avg fees per block, fees as % of revenue)
-- 1-year hashrate change (relative % and absolute EH/s)
-- Daily network revenue (USD)
+Returns: Current/estimated hashrate (EH/s), 30-day average, hash price (USD/TH/day), fee metrics, YoY change.
 
 ---
 
-#### `braiins_difficulty_stats` ✅ IMPLEMENTED
-Get current Bitcoin network difficulty statistics and next adjustment prediction.
-
-**Example Query:**
-```
-"When is the next difficulty adjustment and what's the estimated change?"
-```
-
-**Response Format:**
-- Current difficulty (scientific notation + decimal)
-- Estimated next difficulty
-- Estimated difficulty change percentage
-- Blocks until next adjustment
-- Estimated adjustment time
-- Last adjustment time
-
----
-
-#### `braiins_rss_feed_data` ✅ IMPLEMENTED
-Get recent Braiins blog posts, announcements, and news from the Braiins Insights RSS feed.
-
-**Example Query:**
-```
-"What are the latest Braiins news and announcements?"
-```
-
-**Response Format:**
-- Recent posts (up to 10 most recent)
-- Post titles with links
-- Publication dates and authors
-- Topic categories
-- Article summaries (truncated to 200 chars)
-
----
-
-#### `braiins_halvings` ✅ IMPLEMENTED
-Get Bitcoin halving schedule including next halving countdown, block rewards, and historical halving events.
-
-**Example Query:**
-```
-"When is the next Bitcoin halving?"
-```
-
-**Response Format:**
-- Next halving estimated date
-- Countdown (years, days, hours)
-- Next halving block height
-- Current block height and blocks remaining
-- Current vs. next block reward (BTC)
-- Historical halvings table (date, block height, reward)
-
----
-
-### Parameterized Tools (With Input Parameters)
-
-#### `braiins_blocks` ✅ IMPLEMENTED
-Get recent Bitcoin blocks with optional pagination and date range filtering.
+#### `braiins_blocks`
+Get recent Bitcoin blocks with optional limit.
 
 **Parameters:**
-- `page` (optional, default: 1) - Page number (1-indexed)
-- `page_size` (optional, default: 10) - Blocks per page (1-100)
-- `start_date` (optional) - Filter blocks after date (YYYY-MM-DD)
-- `end_date` (optional) - Filter blocks before date (YYYY-MM-DD)
+- `limit` (optional, default: 10, max: 100) - Number of blocks to return
 
-**Example Queries:**
 ```
 "Show me the last 20 blocks"
-→ { page: 1, page_size: 20 }
-
-"Show blocks mined on December 10, 2025"
-→ { start_date: "2025-12-10", end_date: "2025-12-10", page_size: 50 }
+→ { limit: 20 }
 ```
-
-**Response Format:**
-- Blocks table (height, pool, timestamp, tx count, size, hash)
-- Summary statistics (avg block size, avg transactions/block)
-- Filter information
-- Empty result handling with helpful messages
+Returns: Blocks table (height, pool, timestamp, value in BTC/USD).
 
 ---
 
-#### `braiins_profitability_calculator` ✅ IMPLEMENTED
-Calculate Bitcoin mining profitability based on electricity cost and hardware efficiency.
+#### `braiins_profitability_calculator`
+Calculate Bitcoin mining profitability.
 
-**Parameters (REQUIRED):**
-- `electricity_cost_kwh` (required) - Electricity cost in USD per kWh (0-1)
-- `hardware_efficiency_jth` (required) - Hardware efficiency in J/TH (1-200)
-  - Examples: Antminer S19 Pro: ~29.5 J/TH, S21: ~17.5 J/TH
-
-**Parameters (OPTIONAL):**
+**Parameters:**
+- `electricity_cost_kwh` (required, 0-1) - Electricity cost in USD/kWh
+- `hardware_efficiency_jth` (required, 1-200) - Hardware efficiency in J/TH
 - `hardware_cost_usd` (optional) - Hardware cost for ROI calculation
 
-**Example Queries:**
 ```
-"Is mining profitable at $0.08/kWh with an Antminer S19 Pro?"
-→ { electricity_cost_kwh: 0.08, hardware_efficiency_jth: 29.5 }
-
-"Calculate ROI for $3000 hardware at $0.05/kWh and 25 J/TH efficiency"
-→ { electricity_cost_kwh: 0.05, hardware_efficiency_jth: 25, hardware_cost_usd: 3000 }
+"Is mining profitable at $0.08/kWh with an Antminer S21?"
+→ { electricity_cost_kwh: 0.08, hardware_efficiency_jth: 17.5 }
 ```
-
-**Response Format:**
-- Input parameters summary
-- Profitability indicator (profitable/unprofitable badge)
-- Daily metrics per TH/s (revenue, electricity cost, net profit)
-- Extended projections (monthly, annual profit)
-- ROI analysis (if hardware cost provided)
-- Break-even analysis (BTC price, hashrate, electricity threshold)
-- Network context (difficulty, market conditions)
-- Profitability warnings and recommendations
+Returns: Daily/monthly profit, ROI period, break-even analysis.
 
 ---
 
-### Planned Tools (Not Yet Implemented)
+#### `braiins_mining_overview`
+Comprehensive Bitcoin mining ecosystem overview.
 
-**Simple Stats:**
-```
-braiins_price_stats           // Bitcoin price + 24h change
-braiins_transaction_stats     // Mempool size, fees, confirmation times
-braiins_pool_stats            // Pool distribution by hashrate
-```
+**Parameters:**
+- `include_recent_blocks` (optional, default: true) - Include recent blocks
+- `block_count` (optional, default: 5, max: 20) - Number of blocks
 
-**Parameterized:**
 ```
-braiins_blocks_by_country({ page?, page_size? })
-braiins_cost_to_mine({ electricity_cost_kwh?: number })
-braiins_hardware_stats({ models?: string[] })  // POST endpoint
+"Give me a comprehensive mining overview"
+→ { include_recent_blocks: true, block_count: 5 }
 ```
-
-### Historical Data
-```
-braiins_daily_revenue_history              // 30-day mining revenue trend
-braiins_hashrate_and_difficulty_history    // Historical network metrics
-braiins_hashrate_value_history             // Hashrate price correlation
-braiins_transaction_fees_history           // Fee market evolution
-```
-
-### Composite Tools
-```
-braiins_mining_overview                    // Hashrate + Difficulty + Blocks + Price
-braiins_profitability_deep_dive            // Calculator + Cost-to-mine + Price + History
-braiins_network_health_monitor             // Hashrate history + Difficulty + Blocks + Transactions
-```
+Returns: Unified report with hashrate, difficulty, price, and recent blocks.
 
 ---
 
@@ -501,6 +429,6 @@ Apache License 2.0 - see [LICENSE](./LICENSE) for details.
 
 ---
 
-**Repository**: https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server  
-**Maintained By**: Ryno Crypto Mining Services  
-**Last Updated**: December 13, 2025
+**Repository**: https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server
+**Maintained By**: Ryno Crypto Mining Services
+**Last Updated**: December 17, 2025

@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.2] - 2025-12-17
+
+### Fixed
+
+- **API Type Definitions**: Updated all type definitions to match actual Braiins Insights API response structures
+  - `BraiinsInsightsDifficultyStats`: Fixed field names (`difficulty`, `estimated_adjustment`, `block_epoch`, etc.)
+  - `BraiinsInsightsPriceStats`: Fixed field names (`price`, `percent_change_24h`, `timestamp`)
+  - `BraiinsInsightsBlockData`: Fixed field names (`pool`, `block_value_btc`, `block_value_usd`)
+  - `BlocksQueryParams`: Changed from `page`/`page_size` to `limit` parameter
+
+- **Tool Implementations**: Updated all tools to use correct API field references
+  - `braiins_difficulty_stats`: Fixed field mappings
+  - `braiins_price_stats`: Fixed field mappings and added timestamp formatting
+  - `braiins_blocks`: Changed pagination to use `limit` parameter
+  - `braiins_mining_overview`: Updated all composite data references
+  - `braiins_network_health_monitor`: Fixed difficulty calculations
+  - `braiins_profitability_deep_dive`: Fixed price stats references
+
+### Added
+
+- **Docker Documentation**: Comprehensive Docker setup instructions in README
+  - GitHub Container Registry (GHCR) pull instructions
+  - Local Docker build instructions
+  - Docker configuration options for Claude Desktop and Cursor IDE
+
+### Changed
+
+- Updated README.md with accurate tool counts (17 tools, not 5)
+- Reorganized Available MCP Tools section with clear categorization
+- Updated all documentation references to reflect current API structure
+
+---
+
+## [0.3.1] - 2025-12-16
+
+### Fixed
+
+- **CI/CD Pipeline**: Fixed npm publish workflow
+  - Corrected npm publish environment configuration
+  - Removed GitHub Packages publishing (scope mismatch with org name)
+  - Primary distribution now via npmjs.org and Docker via GHCR
+
+---
+
+## [0.3.0] - 2025-12-15
+
+### Added
+
+**New MCP Tools (12 additional tools, 17 total):**
+
+**Simple Stats Tools:**
+- `braiins_price_stats` - Current BTC price with 24h change percentage
+- `braiins_pool_stats` - Mining pool distribution by hashrate
+- `braiins_transaction_stats` - Mempool size, average fees, confirmation times
+
+**Parameterized Tools:**
+- `braiins_cost_to_mine` - Cost to mine 1 BTC at given electricity rate
+
+**Historical Data Tools:**
+- `braiins_daily_revenue_history` - 30-day mining revenue trend
+- `braiins_hashrate_and_difficulty_history` - Historical network hashrate and difficulty
+- `braiins_hashrate_value_history` - Hash price correlation over time
+- `braiins_transaction_fees_history` - Fee market evolution
+
+**Composite Tools:**
+- `braiins_mining_overview` - Comprehensive ecosystem snapshot (hashrate + difficulty + price + blocks)
+- `braiins_profitability_deep_dive` - Full profitability analysis with historical context
+- `braiins_network_health_monitor` - Network health score with anomaly detection
+
+**Infrastructure:**
+- Docker support with multi-stage builds
+- GitHub Container Registry (GHCR) publishing
+- Pre-commit hooks with Husky and lint-staged
+- Improved test coverage with comprehensive unit tests
+
+### Changed
+
+- Tool registry expanded from 5 to 17 tools
+- API client enhanced with additional endpoint methods
+- Improved caching strategies for different data types
+
+---
+
 ## [0.2.0] - 2025-12-14
 
 ### Added
@@ -150,46 +233,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v0.3.0
-
-**Additional Simple Stats Tools:**
-- `braiins_price_stats` - Bitcoin price with 24h change
-- `braiins_transaction_stats` - Mempool size, fees, confirmation times
-- `braiins_pool_stats` - Pool distribution by hashrate
-
-**Additional Parameterized Tools:**
-- `braiins_blocks_by_country` - Geographic block distribution
-- `braiins_cost_to_mine` - Cost to mine 1 BTC calculation
-- `braiins_hardware_stats` - Hardware specifications (POST endpoint)
-
-**Historical Data Tools:**
-- `braiins_daily_revenue_history` - 30-day mining revenue trend
-- `braiins_hashrate_and_difficulty_history` - Historical network metrics
-- `braiins_hashrate_value_history` - Hashrate price correlation
-- `braiins_transaction_fees_history` - Fee market evolution
-
 ### Planned for v0.4.0
 
-**Composite Tools:**
-- `braiins_mining_overview` - Comprehensive ecosystem snapshot
-  - Combines: hashrate + difficulty + blocks + price
-  - Unified markdown report
-
-- `braiins_profitability_deep_dive` - Detailed profitability analysis
-  - Combines: calculator + cost-to-mine + price + hashrate-value-history
-  - Historical context and ROI projections
-
-- `braiins_network_health_monitor` - Network health indicators
-  - Combines: hashrate-history + difficulty + blocks + transactions
-  - Anomaly detection and alerts
-
-**Performance Improvements:**
-- Parallel API calls for composite tools (Promise.all)
-- Configurable cache TTLs per endpoint
-- Cache hit/miss logging
-- Response time optimization
-
-### Planned for v0.5.0
+**Additional Tools:**
+- `braiins_blocks_by_country` - Geographic block distribution
+- `braiins_hardware_stats` - Hardware specifications (POST endpoint)
 
 **Advanced Features:**
 - Streaming support for large datasets
@@ -258,4 +306,4 @@ Each release follows this structure:
 ---
 
 **Maintained By:** Ryno Crypto Mining Services
-**Last Updated:** December 14, 2025
+**Last Updated:** December 17, 2025

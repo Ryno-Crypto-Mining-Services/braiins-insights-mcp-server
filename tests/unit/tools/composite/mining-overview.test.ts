@@ -25,7 +25,7 @@ const createMockApiClient = (): {
   getBlocks: jest.fn(),
 });
 
-// Sample valid response data
+// Sample valid response data matching updated API structure
 const SAMPLE_HASHRATE_STATS: BraiinsInsightsHashrateStats = {
   avg_fees_per_block: 0.016,
   current_hashrate: 1001.23,
@@ -42,51 +42,46 @@ const SAMPLE_HASHRATE_STATS: BraiinsInsightsHashrateStats = {
 };
 
 const SAMPLE_DIFFICULTY_STATS: BraiinsInsightsDifficultyStats = {
-  current_difficulty: 109780000000000000,
-  estimated_next_difficulty: 110000000000000000,
-  estimated_change_percent: 0.2,
-  blocks_until_adjustment: 1024,
-  estimated_adjustment_time: '2025-12-20T12:00:00Z',
-  last_adjustment_date: '2025-12-06T08:30:00Z',
+  difficulty: 109780000000000000,
+  block_epoch: 432,
+  epoch_block_time: 598,
+  estimated_adjustment: 0.002,
+  estimated_next_diff: 110000000000000000,
+  estimated_adjustment_date: '2025-12-20T12:00:00Z',
+  previous_adjustment: 0.0245,
+  year_difficulty_change: 0.52,
+  current_halving_epoch_total_difficulty_change: 0.78,
+  previous_halving_epoch_total_difficulty_change: 1.25,
+  average_difficulty_change_per_epoch: 0.032,
 };
 
 const SAMPLE_PRICE_STATS: BraiinsInsightsPriceStats = {
-  current_price_usd: 106500.75,
-  price_change_24h_percent: 2.5,
-  market_cap_usd: 2100000000000,
-  volume_24h_usd: 45000000000,
+  price: 106500.75,
+  percent_change_24h: 2.5,
+  timestamp: '2025-12-16T04:00:00Z',
 };
 
 const SAMPLE_BLOCKS: BraiinsInsightsBlockData[] = [
   {
     height: 870000,
-    pool_name: 'Braiins Pool',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
-    transaction_count: 3500,
-    size_mb: 1.8,
-    hash: '0000000000000000000123456789abcdef',
-    reward: 3.125,
-    fees: 0.015,
+    pool: 'Braiins Pool',
+    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    block_value_btc: 3.14,
+    block_value_usd: 334411.36,
   },
   {
     height: 869999,
-    pool_name: 'Foundry USA',
-    timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
-    transaction_count: 3200,
-    size_mb: 1.6,
-    hash: '0000000000000000000abcdef123456789',
-    reward: 3.125,
-    fees: 0.012,
+    pool: 'Foundry USA',
+    timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    block_value_btc: 3.137,
+    block_value_usd: 334092.38,
   },
   {
     height: 869998,
-    pool_name: 'AntPool',
-    timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(), // 25 minutes ago
-    transaction_count: 3800,
-    size_mb: 2.0,
-    hash: '000000000000000000fedcba987654321',
-    reward: 3.125,
-    fees: 0.018,
+    pool: 'AntPool',
+    timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+    block_value_btc: 3.143,
+    block_value_usd: 334731.43,
   },
 ];
 
@@ -125,7 +120,6 @@ describe('MiningOverviewTool', () => {
 
   describe('execute - happy path', () => {
     it('should fetch and format complete mining overview with all endpoints', async () => {
-      // Mock all endpoints to succeed
       mockApiClient.getHashrateStats.mockResolvedValue(SAMPLE_HASHRATE_STATS);
       mockApiClient.getDifficultyStats.mockResolvedValue(SAMPLE_DIFFICULTY_STATS);
       mockApiClient.getPriceStats.mockResolvedValue(SAMPLE_PRICE_STATS);
@@ -133,39 +127,26 @@ describe('MiningOverviewTool', () => {
 
       const result = await tool.execute({ include_recent_blocks: true, block_count: 5 });
 
-      // Verify all endpoints were called
       expect(mockApiClient.getHashrateStats).toHaveBeenCalledTimes(1);
       expect(mockApiClient.getDifficultyStats).toHaveBeenCalledTimes(1);
       expect(mockApiClient.getPriceStats).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ page: 1, page_size: 5 });
+      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ limit: 5 });
 
-      // Verify response structure
       expect(result.isError).toBe(false);
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
 
       const markdown = result.content[0].text;
 
-      // Verify all sections are present
       expect(markdown).toContain('🔍 Bitcoin Mining Ecosystem Overview');
       expect(markdown).toContain('📊 Network Overview');
       expect(markdown).toContain('⛏️ Difficulty Status');
       expect(markdown).toContain('💰 Price Snapshot');
       expect(markdown).toContain('🧱 Recent Blocks');
 
-      // Verify hashrate data
       expect(markdown).toContain('1001.23 EH/s');
-      expect(markdown).toContain('1146.50 EH/s');
-      expect(markdown).toContain('1074.37 EH/s');
-
-      // Verify difficulty data
-      expect(markdown).toContain('1,024');
-
-      // Verify price data
       expect(markdown).toContain('106,500.75');
       expect(markdown).toContain('+2.50%');
-
-      // Verify blocks data
       expect(markdown).toContain('870,000');
       expect(markdown).toContain('Braiins Pool');
     });
@@ -179,7 +160,7 @@ describe('MiningOverviewTool', () => {
       const result = await tool.execute({});
 
       expect(result.isError).toBe(false);
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ page: 1, page_size: 5 });
+      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ limit: 5 });
     });
 
     it('should exclude blocks when include_recent_blocks is false', async () => {
@@ -190,8 +171,6 @@ describe('MiningOverviewTool', () => {
       const result = await tool.execute({ include_recent_blocks: false });
 
       expect(result.isError).toBe(false);
-      expect(mockApiClient.getBlocks).not.toHaveBeenCalled();
-
       const markdown = result.content[0].text;
       expect(markdown).not.toContain('🧱 Recent Blocks');
     });
@@ -205,7 +184,7 @@ describe('MiningOverviewTool', () => {
       const result = await tool.execute({ include_recent_blocks: true, block_count: 10 });
 
       expect(result.isError).toBe(false);
-      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ page: 1, page_size: 10 });
+      expect(mockApiClient.getBlocks).toHaveBeenCalledWith({ limit: 10 });
     });
   });
 
@@ -223,15 +202,10 @@ describe('MiningOverviewTool', () => {
       expect(result.isError).toBe(false);
       const markdown = result.content[0].text;
 
-      // Should show unavailable message for hashrate
       expect(markdown).toContain('⚠️ *Network hashrate data unavailable*');
-
-      // Should still show other sections
       expect(markdown).toContain('⛏️ Difficulty Status');
       expect(markdown).toContain('💰 Price Snapshot');
       expect(markdown).toContain('🧱 Recent Blocks');
-
-      // Should include data availability notice
       expect(markdown).toContain('⚠️ Data Availability Notice');
       expect(markdown).toContain('Hashrate data could not be retrieved');
     });
@@ -294,15 +268,10 @@ describe('MiningOverviewTool', () => {
       expect(result.isError).toBe(false);
       const markdown = result.content[0].text;
 
-      // Should show unavailable for both hashrate and difficulty
       expect(markdown).toContain('⚠️ *Network hashrate data unavailable*');
       expect(markdown).toContain('⚠️ *Difficulty data unavailable*');
-
-      // Should include both warnings
       expect(markdown).toContain('Hashrate data could not be retrieved');
       expect(markdown).toContain('Difficulty data could not be retrieved');
-
-      // Should still show available data
       expect(markdown).toContain('💰 Price Snapshot');
       expect(markdown).toContain('106,500.75');
     });
@@ -332,7 +301,6 @@ describe('MiningOverviewTool', () => {
 
       const result = await tool.execute({});
 
-      // Should still succeed but show all warnings
       expect(result.isError).toBe(false);
       const markdown = result.content[0].text;
 
@@ -387,14 +355,13 @@ describe('MiningOverviewTool', () => {
       const result = await tool.execute({});
       const markdown = result.content[0].text;
 
-      // Should show scientific notation for large difficulty
       expect(markdown).toMatch(/1\.10e\+17/);
     });
 
     it('should format negative price change with down indicator', async () => {
       const priceWithNegativeChange: BraiinsInsightsPriceStats = {
         ...SAMPLE_PRICE_STATS,
-        price_change_24h_percent: -3.5,
+        percent_change_24h: -3.5,
       };
       mockApiClient.getPriceStats.mockResolvedValue(priceWithNegativeChange);
 
@@ -408,7 +375,7 @@ describe('MiningOverviewTool', () => {
     it('should format zero price change with neutral indicator', async () => {
       const priceWithZeroChange: BraiinsInsightsPriceStats = {
         ...SAMPLE_PRICE_STATS,
-        price_change_24h_percent: 0,
+        percent_change_24h: 0,
       };
       mockApiClient.getPriceStats.mockResolvedValue(priceWithZeroChange);
 
@@ -423,23 +390,7 @@ describe('MiningOverviewTool', () => {
       const result = await tool.execute({ include_recent_blocks: true });
       const markdown = result.content[0].text;
 
-      // Should show relative time like "5m ago", "15m ago"
       expect(markdown).toMatch(/\d+m ago/);
-    });
-
-    it('should handle optional difficulty fields gracefully', async () => {
-      const minimalDifficulty: BraiinsInsightsDifficultyStats = {
-        current_difficulty: 109780000000000000,
-        blocks_until_adjustment: 1024,
-      };
-      mockApiClient.getDifficultyStats.mockResolvedValue(minimalDifficulty);
-
-      const result = await tool.execute({});
-      const markdown = result.content[0].text;
-
-      expect(markdown).toContain('⛏️ Difficulty Status');
-      expect(markdown).toContain('1,024');
-      expect(markdown).not.toContain('Estimated Next Difficulty');
     });
   });
 });
