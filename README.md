@@ -1,7 +1,6 @@
 # Braiins Insights MCP Server
 
 [![CI](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/actions/workflows/codeql.yml/badge.svg)](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/actions/workflows/codeql.yml)
 [![codecov](https://codecov.io/gh/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server)
 [![npm version](https://badge.fury.io/js/%40ryno-crypto%2Fbraiins-insights-mcp-server.svg)](https://www.npmjs.com/package/@ryno-crypto/braiins-insights-mcp-server)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
