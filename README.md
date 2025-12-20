@@ -3,10 +3,16 @@
 [![CI](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server)
 [![npm version](https://badge.fury.io/js/%40ryno-crypto%2Fbraiins-insights-mcp-server.svg)](https://www.npmjs.com/package/@ryno-crypto/braiins-insights-mcp-server)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io)
+
+<!-- Quality Badges -->
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![MCP Protocol](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-brightgreen?logo=node.js)](https://nodejs.org/)
+
+<!-- Documentation Badges -->
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server)
+[![Documentation](https://img.shields.io/badge/docs-ARCHITECTURE.md-blue)](./ARCHITECTURE.md)
 
 Connect your AI coding assistant (Claude Desktop, Cursor, GitHub Copilot) to real-time Bitcoin network analytics through the **Braiins Insights Dashboard API**. Access hashrate statistics, mining profitability calculations, network difficulty trends, and 14 additional data sources via standardized Model Context Protocol (MCP) tools.
 
@@ -424,10 +430,32 @@ Apache License 2.0 - see [LICENSE](./LICENSE) for details.
 - **Issues**: [GitHub Issues](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/discussions)
 - **Email**: support@rynocrypto.com
-- **Discord**: [Join our community](https://discord.gg/ryno-crypto)
 
 ---
 
-**Repository**: https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server
-**Maintained By**: Ryno Crypto Mining Services
-**Last Updated**: December 17, 2025
+## Stay Connected
+
+- **Website**: [rynocrypto.com](https://rynocrypto.com)
+- **Nostr**: [ryno@rynocrypto.com](https://njump.me/npub1wdh79svttcryarz2nt7m9mz7wy5gty8fua67d7pcape586rg246q4tgv9u)
+- **BlueSky**: [RynoMining](https://bsky.app/profile/rynomining.bsky.social)
+- **X/Twitter**: [@RynoMining](https://x.com/RynoMining)
+- **GitHub**: [Ryno-Crypto-Mining-Services](https://github.com/Ryno-Crypto-Mining-Services)
+- **LinkedIn**: [Company Page](https://linkedin.com/company/ryno-crypto-mining)
+
+---
+
+- **Repository**: https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server
+- **Maintained By**: Ryno Crypto Mining Services
+- **Last Updated**: December 17, 2025
+
+---
+
+<div align="center">
+
+**Made with ⛏️ by miners, for miners**
+
+[Report Bug](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/issues/new?template=bug_report.md) · 
+[Request Feature](https://github.com/Ryno-Crypto-Mining-Services/braiins-insights-mcp-server/issues/new?template=feature_request.md) · 
+[Documentation](./docs/)
+
+</div>
