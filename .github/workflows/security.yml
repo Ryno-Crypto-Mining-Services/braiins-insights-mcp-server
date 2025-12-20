@@ -11,6 +11,11 @@ on:
       - 'package.json'
       - 'package-lock.json'
 
+# Restrict permissions to minimum required (principle of least privilege)
+# Individual jobs may override with additional permissions as needed
+permissions:
+  contents: read
+
 jobs:
   dependency-scan:
     name: Dependency Vulnerability Scan

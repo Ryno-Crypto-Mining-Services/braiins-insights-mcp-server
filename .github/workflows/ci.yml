@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Restrict permissions to minimum required (principle of least privilege)
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint & Format Check

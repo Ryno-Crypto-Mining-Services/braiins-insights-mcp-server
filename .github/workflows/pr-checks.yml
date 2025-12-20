@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
+# Restrict permissions to minimum required (principle of least privilege)
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   pr-title:
     name: Validate PR Title
@@ -95,8 +100,10 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Check for breaking changes
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          if echo "${{ github.event.pull_request.body }}" | grep -qi "breaking"; then
+          if echo "$PR_BODY" | grep -qi "breaking"; then
             echo "⚠️ BREAKING CHANGE DETECTED"
             echo "This PR contains breaking changes. Ensure:"
             echo "1. Version is bumped appropriately (major version)"
@@ -114,14 +121,18 @@ jobs:
           fetch-depth: 0
 
       - name: Generate review summary
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           echo "## 🤖 AI Review Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**PR Title:** ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Files Changed:** $(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "**PR Title:** $PR_TITLE" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** @$PR_AUTHOR" >> $GITHUB_STEP_SUMMARY
+          echo "**Files Changed:** $(git diff --name-only origin/$BASE_REF...HEAD | wc -l)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Changed Files" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          git diff --name-only origin/${{ github.base_ref }}...HEAD >> $GITHUB_STEP_SUMMARY
+          git diff --name-only origin/$BASE_REF...HEAD >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

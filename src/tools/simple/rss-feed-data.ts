@@ -238,8 +238,15 @@ export class RSSFeedDataTool {
    * Truncate summary text to maximum length
    */
   private truncateSummary(text: string, maxLength: number): string {
-    // Remove HTML tags if present
-    const cleanText = text.replace(/<[^>]*>/g, '').trim();
+    // Remove HTML tags if present - loop until stable to handle nested/malformed tags
+    // This prevents bypass attacks like "<<script>script>" which would leave "<script>" after one pass
+    let cleanText = text;
+    let previousText: string;
+    do {
+      previousText = cleanText;
+      cleanText = cleanText.replace(/<[^>]*>/g, '');
+    } while (cleanText !== previousText);
+    cleanText = cleanText.trim();
 
     if (cleanText.length <= maxLength) {
       return cleanText;
