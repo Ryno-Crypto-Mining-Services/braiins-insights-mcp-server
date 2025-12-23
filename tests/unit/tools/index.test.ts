@@ -258,9 +258,12 @@ describe('MCP Tool Registry', () => {
       const profitTool = tools.find((t) => t.name === 'braiins_profitability_calculator');
 
       expect(profitTool).toBeDefined();
-      expect(profitTool!.inputSchema.required.length).toBeGreaterThan(0);
-      expect(profitTool!.inputSchema.required).toContain('electricity_cost_kwh');
-      expect(profitTool!.inputSchema.required).toContain('hardware_efficiency_jth');
+      if (!profitTool) {
+        throw new Error('profitTool should be defined');
+      }
+      expect(profitTool.inputSchema.required.length).toBeGreaterThan(0);
+      expect(profitTool.inputSchema.required).toContain('electricity_cost_kwh');
+      expect(profitTool.inputSchema.required).toContain('hardware_efficiency_jth');
     });
 
     it('braiins_blocks should have optional limit parameter', () => {
@@ -268,7 +271,10 @@ describe('MCP Tool Registry', () => {
       const blocksTool = tools.find((t) => t.name === 'braiins_blocks');
 
       expect(blocksTool).toBeDefined();
-      const props = Object.keys(blocksTool!.inputSchema.properties);
+      if (!blocksTool) {
+        throw new Error('blocksTool should be defined');
+      }
+      const props = Object.keys(blocksTool.inputSchema.properties);
       expect(props).toContain('limit');
     });
 
@@ -277,12 +283,15 @@ describe('MCP Tool Registry', () => {
       const costTool = tools.find((t) => t.name === 'braiins_cost_to_mine');
 
       expect(costTool).toBeDefined();
-      const props = Object.keys(costTool!.inputSchema.properties);
+      if (!costTool) {
+        throw new Error('costTool should be defined');
+      }
+      const props = Object.keys(costTool.inputSchema.properties);
       expect(props).toContain('electricity_price_per_kwh');
       // Verify the three required parameters exist
       expect(props).toContain('hashrate_ths');
       expect(props).toContain('consumption_watts');
-      expect(costTool!.inputSchema.required).toEqual([
+      expect(costTool.inputSchema.required).toEqual([
         'hashrate_ths',
         'consumption_watts',
         'electricity_price_per_kwh',

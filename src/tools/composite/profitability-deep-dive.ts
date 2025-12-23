@@ -254,8 +254,12 @@ export class ProfitabilityDeepDiveTool {
     sections.push(`- **Electricity Cost:** $${input.electricity_cost_kwh.toFixed(4)}/kWh`);
     sections.push(`- **Hardware Efficiency:** ${input.hardware_efficiency_jth.toFixed(1)} J/TH\n`);
 
-    // Main profitability data is guaranteed to exist
-    const profitability = results.profitability.data!;
+    // Main profitability data is guaranteed to exist (checked in execute method)
+    const profitability =
+      results.profitability.data ??
+      (() => {
+        throw new Error('Profitability data unexpectedly missing despite success check');
+      })();
 
     // Profitability Summary
     sections.push(this.formatProfitabilitySummary(profitability));
@@ -267,9 +271,13 @@ export class ProfitabilityDeepDiveTool {
     sections.push(this.formatMarketContext(profitability, results.priceStats));
 
     // Historical Trends (if requested and available)
-    if (input.include_historical && results.historicalHashrateValue.success) {
+    if (
+      input.include_historical &&
+      results.historicalHashrateValue.success &&
+      results.historicalHashrateValue.data
+    ) {
       sections.push(
-        this.formatHistoricalTrends(results.historicalHashrateValue.data!, input.historical_days)
+        this.formatHistoricalTrends(results.historicalHashrateValue.data, input.historical_days)
       );
     }
 

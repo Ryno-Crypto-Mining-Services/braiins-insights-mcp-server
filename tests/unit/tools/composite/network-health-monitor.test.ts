@@ -163,7 +163,7 @@ describe('NetworkHealthMonitorTool', () => {
 
       const scoreMatch = text.match(/Overall: (\d+)\/100/);
       expect(scoreMatch).toBeTruthy();
-      const score = parseInt(scoreMatch![1], 10);
+      const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
       expect(score).toBeGreaterThanOrEqual(80);
       expect(text).toContain('🟢');
       expect(text).toContain('Healthy');
@@ -189,7 +189,7 @@ describe('NetworkHealthMonitorTool', () => {
 
       const scoreMatch = text.match(/Overall: (\d+)\/100/);
       expect(scoreMatch).toBeTruthy();
-      const score = parseInt(scoreMatch![1], 10);
+      const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
       expect(score).toBeGreaterThanOrEqual(50);
       expect(score).toBeLessThan(80);
       expect(text).toContain('🟡');
@@ -218,7 +218,7 @@ describe('NetworkHealthMonitorTool', () => {
 
       const scoreMatch = text.match(/Overall: (\d+)\/100/);
       expect(scoreMatch).toBeTruthy();
-      const score = parseInt(scoreMatch![1], 10);
+      const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 100;
       expect(score).toBeLessThanOrEqual(50); // Changed to <= since 50 is still "Caution" boundary
       expect(text).toContain('🔴');
     });
